@@ -1,0 +1,496 @@
+import { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
+import { Search, MapPin, Calendar, Users, Star, ArrowRight, Phone, Mail, MapPin as LocationIcon } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import EventCard from '@/components/EventCard'
+import { providersAPI } from '@/services/api'
+
+// Available event images from public folder
+const eventImages = [
+  'ambience.jpg',
+  'birthday background.jpg', 
+  'birthday.jpg',
+  'concert event.jpg',
+  'conference.jpg',
+  'corporate.jpg',
+  'corporateevent.jpg',
+  'dj.jpg',
+  'djevent.jpg',
+  'gameing.jpg',
+  'Indian Wedding Mandap Decor.jpg',
+  'lighting.jpg',
+  'wedd33.jpg',
+  'wedding.jpg',
+  'wedding22.jpg',
+  'WhatsApp Image 2025-01-03 at 13.04.37_93b22328.jpg',
+  'WhatsApp Image 2025-01-03 at 13.04.41_94798184.jpg',
+  'WhatsApp Image 2025-01-03 at 13.04.44_b67a33fc.jpg',
+  'WhatsApp Image 2025-01-03 at 13.04.45_43b52d23.jpg',
+  'WhatsApp Image 2025-01-03 at 13.04.48_b38c82a5.jpg',
+  'WhatsApp Image 2025-01-03 at 13.04.51_c51d1db7.jpg'
+]
+
+const getRandomImage = () => eventImages[Math.floor(Math.random() * eventImages.length)]
+
+const Homepage = () => {
+  const [searchQuery, setSearchQuery] = useState('')
+  const [currentSlide, setCurrentSlide] = useState(0)
+  const [topProviders, setTopProviders] = useState([])
+  const [loading, setLoading] = useState(true)
+  const navigate = useNavigate()
+
+  const handleSearch = (e) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      navigate(`/AllEvent?search=${encodeURIComponent(searchQuery.trim())}`)
+    } else {
+      navigate('/AllEvent')
+    }
+  }
+
+  const heroImages = [
+    '/src/public/people-8552338_1280.jpg',
+    '/src/public/6201540413437887895.jpg',
+    '/src/public/6201540413437887900.jpg'
+  ]
+
+  const categories = [
+    { name: 'Weddings', icon: '💒', count: '150+' },
+    { name: 'Corporate', icon: '🏢', count: '80+' },
+    { name: 'Birthday', icon: '🎂', count: '200+' },
+    { name: 'Anniversary', icon: '💕', count: '90+' },
+    { name: 'Conferences', icon: '🎤', count: '60+' },
+    { name: 'Parties', icon: '🎉', count: '300+' }
+  ]
+
+  // Fetch top providers from API
+  useEffect(() => {
+    const fetchTopProviders = async () => {
+      try {
+        const response = await providersAPI.getAllProviders({ limit: 4 })
+        if (response.success) {
+          setTopProviders(response.data.providers)
+        }
+      } catch (error) {
+        console.error('Failed to fetch top providers:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    fetchTopProviders()
+  }, [])
+
+  const testimonials = [
+    {
+      name: 'Sarah Johnson',
+      role: 'Bride',
+      content: 'CALEVENT made our wedding planning so easy! Found the perfect venue and vendors all in one place.',
+      rating: 5,
+      image: '/src/public/Ryan-360x290.jpg'
+    },
+    {
+      name: 'Michael Chen',
+      role: 'Corporate Manager',
+      content: 'Excellent platform for corporate events. Professional service and great vendor network.',
+      rating: 5,
+      image: '/src/public/Ryan-360x290.jpg'
+    },
+    {
+      name: 'Emily Davis',
+      role: 'Event Organizer',
+      content: 'The booking process is seamless and the customer support is outstanding. Highly recommended!',
+      rating: 5,
+      image: '/src/public/Ryan-360x290.jpg'
+    }
+  ]
+
+  const stats = [
+    { label: 'Events Hosted', value: '10,000+', icon: Calendar },
+    { label: 'Happy Customers', value: '25,000+', icon: Users },
+    { label: 'Verified Providers', value: '500+', icon: Star },
+    { label: 'Cities Covered', value: '50+', icon: MapPin }
+  ]
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % heroImages.length)
+    }, 5000)
+    return () => clearInterval(timer)
+  }, [])
+
+  return (
+    <div className="min-h-screen">
+      {/* Hero Section */}
+      <section className="relative h-screen flex items-center justify-center overflow-hidden">
+        {/* Background Images */}
+        {heroImages.map((image, index) => (
+          <div
+            key={index}
+            className={`absolute inset-0 transition-opacity duration-1000 ${
+              index === currentSlide ? 'opacity-100' : 'opacity-0'
+            }`}
+          >
+            <img
+              src={image}
+              alt={`Hero ${index + 1}`}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-black/60" />
+          </div>
+        ))}
+
+        {/* Hero Content */}
+        <div className="relative z-10 text-center text-white max-w-4xl mx-auto px-4">
+          <motion.h1
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-5xl md:text-7xl font-bold mb-6"
+          >
+            Create Unforgettable
+            <span className="block bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+              Moments
+            </span>
+          </motion.h1>
+          
+          <motion.p
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="text-xl md:text-2xl mb-8 text-gray-200"
+          >
+            Discover and book the perfect events with trusted providers
+          </motion.p>
+
+          {/* Search Bar */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="max-w-2xl mx-auto mb-8"
+          >
+            <div className="flex flex-col md:flex-row gap-4 bg-white/10 backdrop-blur-md p-4 rounded-2xl">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Input
+                  placeholder="Search events, venues, or services..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch(e)}
+                  className="pl-10 bg-white border-0 h-12 text-gray-900 placeholder-gray-500"
+                />
+              </div>
+              <Button size="lg" className="h-12 px-8" onClick={handleSearch}>
+                Search Events
+              </Button>
+            </div>
+          </motion.div>
+
+          {/* Quick Stats */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+            className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto"
+          >
+            {stats.map((stat, index) => (
+              <div key={index} className="text-center">
+                <stat.icon className="w-8 h-8 mx-auto mb-2 text-[#333f63]" />
+                <div className="text-2xl font-bold">{stat.value}</div>
+                <div className="text-sm text-gray-300">{stat.label}</div>
+              </div>
+            ))}
+          </motion.div>
+        </div>
+
+        {/* Slide Indicators */}
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-2">
+          {heroImages.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentSlide(index)}
+              className={`w-3 h-3 rounded-full transition-colors ${
+                index === currentSlide ? 'bg-white' : 'bg-white/50'
+              }`}
+            />
+          ))}
+        </div>
+      </section>
+
+      {/* Categories Section */}
+      <section className="py-20 bg-slate-50">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-slate-900 mb-4">
+              Popular Event Categories
+            </h2>
+            <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+              Discover amazing events across different categories
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+            {categories.map((category, index) => (
+              <motion.div
+                key={category.name}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                whileHover={{ y: -5 }}
+                className="group cursor-pointer"
+              >
+                <Link to={`/category/${category.name.toLowerCase()}`}>
+                  <div className="bg-gradient-to-br from-white to-slate-50 p-7 rounded-2xl text-slate-800 text-center shadow-lg group-hover:shadow-xl transition-all duration-300 border border-slate-200 hover:border-slate-300">
+                    <div className="text-5xl mb-4">{category.icon}</div>
+                    <h3 className="font-semibold text-lg mb-1">{category.name}</h3>
+                    <p className="text-sm text-slate-600">{category.count} events</p>
+                  </div>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Top Providers Section */}
+      <section className="py-20">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-slate-900 mb-4">
+              Top-Rated Providers
+            </h2>
+            <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+              Work with the best event professionals in the industry
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {loading ? (
+              // Loading skeleton
+              [...Array(4)].map((_, index) => (
+                <div key={index} className="bg-white rounded-2xl shadow-lg overflow-hidden animate-pulse">
+                  <div className="aspect-square bg-gray-200" />
+                  <div className="p-6">
+                    <div className="h-4 bg-gray-200 rounded mb-2" />
+                    <div className="h-3 bg-gray-200 rounded w-2/3" />
+                  </div>
+                </div>
+              ))
+            ) : topProviders.length > 0 ? (
+              topProviders.map((provider, index) => (
+                <motion.div
+                  key={provider._id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  whileHover={{ y: -5 }}
+                  className="bg-white rounded-2xl shadow-lg overflow-hidden group cursor-pointer"
+                >
+                  <Link to={`/provider/profile/${provider._id}`}>
+                    <div className="aspect-square overflow-hidden">
+                      <img
+                        src={provider.profileImage || '/src/public/Ryan-360x290.jpg'}
+                        alt={provider.businessName || provider.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
+                    <div className="p-6">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-semibold text-lg text-gray-900 truncate">
+                          {provider.businessName || provider.name}
+                        </h3>
+                        {provider.isVerified && (
+                          <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                            <span className="text-white text-xs">✓</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-4 text-sm text-gray-600">
+                        <div className="flex items-center space-x-1">
+                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                          <span>{provider.rating || '0.0'}</span>
+                        </div>
+                        <div>{provider.totalBookings || 0} bookings</div>
+                      </div>
+                    </div>
+                  </Link>
+                </motion.div>
+              ))
+            ) : (
+              <div className="col-span-full text-center py-12">
+                <p className="text-gray-500">No providers available at the moment.</p>
+              </div>
+            )}
+          </div>
+
+          <div className="text-center mt-12">
+            <Link to="/providers">
+              <Button variant="outline" size="lg">
+                View All Providers
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              What Our Customers Say
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Real stories from satisfied customers
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {testimonials.map((testimonial, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="bg-white p-8 rounded-2xl shadow-lg"
+              >
+                <div className="flex items-center space-x-1 mb-4">
+                  {[...Array(testimonial.rating)].map((_, i) => (
+                    <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                  ))}
+                </div>
+                <p className="text-gray-600 mb-6 italic">"{testimonial.content}"</p>
+                <div className="flex items-center space-x-3">
+                  <img
+                    src={testimonial.image}
+                    alt={testimonial.name}
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
+                  <div>
+                    <div className="font-semibold text-gray-900">{testimonial.name}</div>
+                    <div className="text-sm text-gray-600">{testimonial.role}</div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Contact Section */}
+      <section className="py-20">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="bg-gradient-to-r from-black to-[#333f63] rounded-3xl p-12 text-white">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              <div>
+                <h2 className="text-4xl font-bold mb-6">
+                  Ready to Plan Your Perfect Event?
+                </h2>
+                <p className="text-xl mb-8 text-gray-200">
+                  Get in touch with our team and let's make your vision come to life
+                </p>
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-3">
+                    <Phone className="w-5 h-5" />
+                    <span>+91 9876543210</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Mail className="w-5 h-5" />
+                    <span>hello@calevent.com</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <LocationIcon className="w-5 h-5" />
+                    <span>Mumbai, India</span>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white/10 backdrop-blur-md p-8 rounded-2xl">
+                <h3 className="text-2xl font-semibold mb-6">Send us a message</h3>
+                <form className="space-y-4">
+                  <Input placeholder="Your Name" className="bg-white/20 border-white/30 text-white placeholder:text-white/70" />
+                  <Input placeholder="Your Email" type="email" className="bg-white/20 border-white/30 text-white placeholder:text-white/70" />
+                  <textarea
+                    placeholder="Your Message"
+                    rows={4}
+                    className="w-full p-3 rounded-lg bg-white/20 border border-white/30 text-white placeholder:text-white/70 resize-none focus:outline-none focus:ring-2 focus:ring-white/50"
+                  />
+                  <Button variant="secondary" className="w-full">
+                    Send Message
+                  </Button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-white py-16">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div>
+              <div className="text-2xl font-bold bg-gradient-to-r from-black to-[#333f63] bg-clip-text text-transparent mb-4">
+                CALEVENT
+              </div>
+              <p className="text-gray-400 mb-4">
+                Your trusted partner for creating unforgettable events and celebrations.
+              </p>
+              <div className="flex space-x-4">
+                <div className="w-8 h-8 bg-gradient-to-r from-black to-[#333f63] rounded-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity">
+                  <span className="text-sm">f</span>
+                </div>
+                <div className="w-8 h-8 bg-gradient-to-r from-black to-[#333f63] rounded-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity">
+                  <span className="text-sm">t</span>
+                </div>
+                <div className="w-8 h-8 bg-gradient-to-r from-black to-[#333f63] rounded-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity">
+                  <span className="text-sm">i</span>
+                </div>
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold text-lg mb-4">Quick Links</h3>
+              <ul className="space-y-2 text-gray-400">
+                <li><Link to="/about" className="hover:text-white transition-colors">About Us</Link></li>
+                <li><Link to="/AllEvent" className="hover:text-white transition-colors">Browse Events</Link></li>
+                <li><Link to="/providers" className="hover:text-white transition-colors">Find Providers</Link></li>
+                <li><Link to="/combo" className="hover:text-white transition-colors">Combo Events</Link></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold text-lg mb-4">Support</h3>
+              <ul className="space-y-2 text-gray-400">
+                <li><Link to="/help" className="hover:text-white transition-colors">Help Center</Link></li>
+                <li><Link to="/contact" className="hover:text-white transition-colors">Contact Us</Link></li>
+                <li><Link to="/faq" className="hover:text-white transition-colors">FAQ</Link></li>
+                <li><Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold text-lg mb-4">Newsletter</h3>
+              <p className="text-gray-400 mb-4">
+                Subscribe to get updates on new events and offers.
+              </p>
+              <div className="flex">
+                <Input placeholder="Your email" className="rounded-r-none" />
+                <Button className="rounded-l-none">Subscribe</Button>
+              </div>
+            </div>
+          </div>
+          
+          <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
+            <p>&copy; 2024 CALEVENT. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  )
+}
+
+export default Homepage
