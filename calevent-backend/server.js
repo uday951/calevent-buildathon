@@ -41,8 +41,8 @@ const requiredEnvVars = [
 
 const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
 if (missingEnvVars.length > 0) {
-  console.error('Missing required environment variables:', missingEnvVars.join(', '));
-  process.exit(1);
+  console.warn('⚠️ WARNING: Missing required environment variables:', missingEnvVars.join(', '));
+  console.warn('⚠️ The server might not function correctly until these are added in Render Environment variables.');
 }
 
 // Initialize Express app
