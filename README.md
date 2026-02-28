@@ -5,7 +5,7 @@
   
   <p><strong>Redefining the event industry with Multi-Tier AI, seamless UX, and hyper-premium architecture.</strong></p>
   
-  > **Live Demo:** [Insert Live Link Here]
+  > **Live Demo:** [https://calevent-buildathon.onrender.com](https://calevent-buildathon.onrender.com)
 </div>
 
 ---
