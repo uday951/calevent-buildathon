@@ -36,8 +36,7 @@ dotenv.config();
 const requiredEnvVars = [
   'PORT',
   'MONGO_URI',
-  'JWT_SECRET',
-  'FRONTEND_URL'
+  'JWT_SECRET'
 ];
 
 const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
