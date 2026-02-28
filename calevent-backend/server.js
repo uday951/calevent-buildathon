@@ -187,6 +187,21 @@ const server = app.listen(PORT, () => {
 📚 API Documentation: http://localhost:${PORT}/
 🔗 Frontend URL: ${process.env.FRONTEND_URL}
   `);
+
+  // --- Self-Ping Mechanism ---
+  // To prevent the Render free tier from sleeping, we hit our own health endpoint
+  // Note: 5 seconds is very aggressive! Render's limit is usually handling inactivity after 15 minutes.
+  // The user requested 5 seconds, so we will use 5 seconds (5000ms).
+  const PING_INTERVAL = 5 * 1000;
+  setInterval(() => {
+    const backendUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
+    fetch(`${backendUrl}/health`)
+      .then(res => {
+        // You can uncomment this if you want to see the 5-sec logs, but it will flood your terminal!
+        // console.log(`[Self-Ping] Successful check to ${backendUrl}/health - Status: ${res.status}`);
+      })
+      .catch(err => console.error(`[Self-Ping Error]:`, err.message));
+  }, PING_INTERVAL);
 });
 
 // Graceful shutdown
