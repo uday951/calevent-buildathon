@@ -69,9 +69,9 @@ const Homepage = () => {
   }
 
   const heroImages = [
-    '/src/public/people-8552338_1280.jpg',
-    '/src/public/6201540413437887895.jpg',
-    '/src/public/6201540413437887900.jpg'
+    '/people-8552338_1280.jpg',
+    '/6201540413437887895.jpg',
+    '/6201540413437887900.jpg'
   ]
 
   const categories = [
@@ -217,21 +217,21 @@ const Homepage = () => {
       role: 'Bride',
       content: 'CALEVENT made our wedding planning so easy! Found the perfect venue and vendors all in one place.',
       rating: 5,
-      image: '/src/public/Ryan-360x290.jpg'
+      image: '/Ryan-360x290.jpg'
     },
     {
       name: 'Michael Chen',
       role: 'Corporate Manager',
       content: 'Excellent platform for corporate events. Professional service and great vendor network.',
       rating: 5,
-      image: '/src/public/Ryan-360x290.jpg'
+      image: '/Ryan-360x290.jpg'
     },
     {
       name: 'Emily Davis',
       role: 'Event Organizer',
       content: 'The booking process is seamless and the customer support is outstanding. Highly recommended!',
       rating: 5,
-      image: '/src/public/Ryan-360x290.jpg'
+      image: '/Ryan-360x290.jpg'
     }
   ]
 
@@ -544,7 +544,7 @@ const Homepage = () => {
                   <Link to={`/provider/profile/${provider._id}`}>
                     <div className="aspect-square overflow-hidden">
                       <img
-                        src={provider.profileImage || '/src/public/Ryan-360x290.jpg'}
+                        src={provider.profileImage || '/Ryan-360x290.jpg'}
                         alt={provider.businessName || provider.name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />

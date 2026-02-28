@@ -31,7 +31,7 @@ const EventCard = ({ event, className = '' }) => {
                   ? event.eventImage 
                   : event.eventImage 
                     ? `${import.meta.env.VITE_BACKEND_URL}/${event.eventImage}` 
-                    : '/src/public/wedding.jpg'
+                    : '/wedding.jpg'
               }
               alt={event.title}
               className={`w-full h-full object-cover transition-all duration-300 group-hover:scale-105 ${
@@ -39,7 +39,7 @@ const EventCard = ({ event, className = '' }) => {
               }`}
               onLoad={() => setImageLoaded(true)}
               onError={(e) => {
-                e.target.src = '/src/public/wedding.jpg'
+                e.target.src = '/wedding.jpg'
               }}
             />
             {!imageLoaded && (
