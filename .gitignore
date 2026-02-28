@@ -59,8 +59,8 @@ out/
 .nuxt/
 
 # Gatsby files
+# Gatsby files
 .cache/
-public
 
 # Storybook build outputs
 .out
@@ -84,12 +84,7 @@ public
 # Local Netlify folder
 .netlify
 
-# Generated images
-*.jpg
-*.png
-*.jpeg
-*.gif
-*.webp
+# Ignore generated testing images locally
 wedding_stage.jpg
 blue_birthday_stage.jpg
 generated_image_*.jpg
