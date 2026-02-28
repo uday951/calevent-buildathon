@@ -12,7 +12,8 @@ import {
   X,
   Plus,
   BookOpen,
-  MessageSquare
+  MessageSquare,
+  Sparkles
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 
@@ -25,6 +26,7 @@ const ProviderLayout = () => {
     { name: 'My Events', href: '/provider/events', icon: Calendar },
     { name: 'Post Event', href: '/provider/post-event', icon: Plus },
     { name: 'Bookings', href: '/provider/track', icon: BookOpen },
+    { name: 'AI Requests', href: '/provider/requests', icon: Sparkles },
     { name: 'Messages', href: '/provider/messages', icon: MessageSquare },
     { name: 'Analytics', href: '/provider/analytics', icon: BarChart3 },
     { name: 'Profile', href: '/provider/profile', icon: User },

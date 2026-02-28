@@ -14,21 +14,27 @@ export const formatPrice = (price) => {
 }
 
 export const formatDate = (date) => {
+  if (!date) return 'N/A'
+  const dateObj = new Date(date)
+  if (isNaN(dateObj.getTime())) return 'Invalid Date'
   return new Intl.DateTimeFormat('en-IN', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
-  }).format(new Date(date))
+  }).format(dateObj)
 }
 
 export const formatDateTime = (date) => {
+  if (!date) return 'N/A'
+  const dateObj = new Date(date)
+  if (isNaN(dateObj.getTime())) return 'Invalid Date'
   return new Intl.DateTimeFormat('en-IN', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-  }).format(new Date(date))
+  }).format(dateObj)
 }
 
 export const truncateText = (text, maxLength = 100) => {

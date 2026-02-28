@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { MessageCircle, X, Send, Bot, User, ExternalLink, Heart, Share2, Calendar, MapPin, Star, Users, Image, Upload } from 'lucide-react'
+import { MessageCircle, X, Send, Bot, User, ExternalLink, Heart, Share2, Calendar, MapPin, Star, Users, Image, Upload, Sparkles, Zap } from 'lucide-react'
 import { chatbotAPI } from '@/services/api'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -204,7 +204,11 @@ const Chatbot = () => {
     setIsTyping(true)
 
     try {
-      const response = await chatbotAPI.sendMessage({ message, context: { user } })
+      const response = await chatbotAPI.sendMessage({ 
+        message, 
+        context: { user },
+        conversationHistory: messages 
+      })
       
       if (response.success) {
         const botMessage = {
@@ -347,6 +351,80 @@ const Chatbot = () => {
     )
   }
 
+  // Render combo package cards
+  const renderComboCards = (combos) => {
+    if (!combos || combos.length === 0) return null
+
+    return (
+      <div className="mt-3 space-y-2 max-h-64 overflow-y-auto">
+        {combos.map((combo) => (
+          <div key={combo.id} className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-3 hover:shadow-md transition-shadow">
+            <div className="flex items-start space-x-3">
+              <div className="w-16 h-16 bg-purple-200 rounded-lg flex items-center justify-center overflow-hidden">
+                <img 
+                  src={combo.image || '/images/combo/default.jpg'}
+                  alt={combo.title}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                  onError={(e) => {
+                    e.target.style.display = 'none'
+                    e.target.parentElement.innerHTML = '<div class="text-purple-400 text-xs">🎁</div>'
+                  }}
+                />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="font-semibold text-sm text-gray-900 truncate">{combo.title}</h4>
+                <p className="text-xs text-gray-600 mt-1">{combo.description}</p>
+                
+                {/* Services included */}
+                {combo.services && (
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {combo.services.slice(0, 3).map((service, idx) => (
+                      <span key={idx} className="px-1 py-0.5 bg-purple-100 text-purple-700 text-xs rounded">
+                        {service}
+                      </span>
+                    ))}
+                    {combo.services.length > 3 && (
+                      <span className="text-xs text-purple-600">+{combo.services.length - 3} more</span>
+                    )}
+                  </div>
+                )}
+                
+                <div className="flex items-center justify-between mt-2">
+                  <div className="flex items-center space-x-2 text-xs">
+                    <span className="font-semibold text-purple-700">₹{combo.price?.toLocaleString()}</span>
+                    {combo.originalPrice && (
+                      <>
+                        <span className="line-through text-gray-400">₹{combo.originalPrice.toLocaleString()}</span>
+                        <span className="bg-green-100 text-green-700 px-1 py-0.5 rounded text-xs">
+                          {combo.discount}% OFF
+                        </span>
+                      </>
+                    )}
+                  </div>
+                  <div className="flex space-x-1">
+                    <button
+                      onClick={() => handleAction('book', { eventId: combo.id, title: combo.title })}
+                      className="px-2 py-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs rounded hover:shadow-md transition-all"
+                    >
+                      Book Combo
+                    </button>
+                  </div>
+                </div>
+                
+                {combo.savings && (
+                  <div className="mt-1 text-xs text-green-600 font-medium">
+                    💰 Save ₹{combo.savings.toLocaleString()}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
   // Render booking cards
   const renderBookingCards = (bookings) => {
     if (!bookings || bookings.length === 0) return null
@@ -427,16 +505,14 @@ const Chatbot = () => {
   return (
     <>
       {/* Chat Button */}
-      <motion.button
+      <button
         onClick={() => setIsOpen(true)}
         className={`fixed bottom-6 right-6 z-50 w-14 h-14 bg-gradient-to-r from-black to-[#333f63] text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center ${
           isOpen ? 'hidden' : 'block'
         }`}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
       >
         <MessageCircle className="w-6 h-6" />
-      </motion.button>
+      </button>
 
       {/* Chat Window */}
       <AnimatePresence>
@@ -450,12 +526,19 @@ const Chatbot = () => {
             {/* Header */}
             <div className="bg-gradient-to-r from-black to-[#333f63] text-white p-4 flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                  <Bot className="w-5 h-5" />
+                <div className="relative">
+                  <div className="w-10 h-10 bg-gradient-to-br from-pink-400 via-purple-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent"></div>
+                    <span className="text-xl">🤖</span>
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white animate-pulse"></div>
                 </div>
                 <div>
-                  <h3 className="font-semibold">CALEVENT Assistant</h3>
-                  <p className="text-xs opacity-90">Online now</p>
+                  <h3 className="font-semibold">CALEVENT AI Assistant</h3>
+                  <div className="flex items-center space-x-1">
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <p className="text-xs opacity-90">Online • Ready to help</p>
+                  </div>
                 </div>
               </div>
               <button
@@ -476,15 +559,18 @@ const Chatbot = () => {
                   <div className={`flex items-end space-x-2 max-w-xs ${
                     message.sender === 'user' ? 'flex-row-reverse space-x-reverse' : ''
                   }`}>
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shadow-sm ${
                       message.sender === 'user' 
                         ? 'bg-gradient-to-r from-black to-[#333f63] text-white' 
-                        : 'bg-gray-200 text-gray-600'
+                        : 'bg-gradient-to-br from-pink-400 via-purple-500 to-indigo-600 text-white relative overflow-hidden'
                     }`}>
                       {message.sender === 'user' ? (
-                        <User className="w-3 h-3" />
+                        <User className="w-4 h-4" />
                       ) : (
-                        <Bot className="w-3 h-3" />
+                        <>
+                          <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent"></div>
+                          <span className="text-sm relative z-10">🤖</span>
+                        </>
                       )}
                     </div>
                     <div className={`px-3 py-2 rounded-2xl ${
@@ -506,6 +592,7 @@ const Chatbot = () => {
                         <div className="mt-2">
                           {message.data.type === 'decoration_design' && renderDecorationDesign(message.data)}
                           {message.data.type === 'event_showcase' && renderEventCards(message.data.events)}
+                          {message.data.type === 'combo_showcase' && renderComboCards(message.data.events)}
                           {message.data.type === 'search_results' && renderEventCards(message.data.events)}
                           {message.data.type === 'pricing_showcase' && renderEventCards(message.data.events)}
                           {message.data.type === 'booking_list' && renderBookingCards(message.data.bookings)}
@@ -540,20 +627,26 @@ const Chatbot = () => {
 
               {/* Typing Indicator */}
               {isTyping && (
-                <div className="flex justify-start">
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex justify-start"
+                >
                   <div className="flex items-end space-x-2 max-w-xs">
-                    <div className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center">
-                      <Bot className="w-3 h-3 text-gray-600" />
+                    <div className="w-8 h-8 bg-gradient-to-br from-pink-400 via-purple-500 to-indigo-600 rounded-full flex items-center justify-center animate-pulse relative overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent"></div>
+                      <span className="text-sm relative z-10">🤖</span>
                     </div>
-                    <div className="bg-gray-100 px-3 py-2 rounded-2xl rounded-bl-sm">
-                      <div className="flex space-x-1">
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                    <div className="bg-gradient-to-r from-gray-100 to-gray-50 px-4 py-3 rounded-2xl rounded-bl-sm shadow-sm">
+                      <div className="flex items-center space-x-1">
+                        <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" />
+                        <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+                        <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                        <span className="text-xs text-gray-500 ml-2">AI is thinking...</span>
                       </div>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               )}
 
               <div ref={messagesEndRef} />

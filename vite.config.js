@@ -12,6 +12,13 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': 'http://localhost:5000'
+    },
+    watch: {
+      ignored: ['**/node_modules/**', 'D:/**/!(main_projects/calevent)/**']
+    },
+    fs: {
+      strict: true,
+      allow: ['..']
     }
   }
 })

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { 
   Calendar, Clock, MapPin, Users, Star, 
@@ -14,46 +14,142 @@ import { Input } from '@/components/ui/Input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { formatPrice, formatDate, getImageUrl } from '@/lib/utils'
 import { Link } from 'react-router-dom'
+import toast from 'react-hot-toast'
 
 const CustomerBookingDashboard = () => {
   const { user, isAuthenticated } = useAuth()
   const [activeTab, setActiveTab] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState('newest')
+  const [bookingData, setBookingData] = useState(null)
+  const [showBookingForm, setShowBookingForm] = useState(false)
+  const [bookingForm, setBookingForm] = useState({
+    eventDate: '',
+    eventTime: '',
+    location: '',
+    guests: '',
+    specialRequests: ''
+  })
+  const [aiRequests, setAiRequests] = useState([])
 
-  const tabs = [
-    { id: 'all', label: 'All Bookings', count: 12 },
-    { id: 'upcoming', label: 'Upcoming', count: 3 },
-    { id: 'completed', label: 'Completed', count: 7 },
-    { id: 'cancelled', label: 'Cancelled', count: 2 }
-  ]
+  useEffect(() => {
+    // Check if coming from AI request
+    const savedBookingData = localStorage.getItem('bookingData')
+    if (savedBookingData) {
+      setBookingData(JSON.parse(savedBookingData))
+      setShowBookingForm(true)
+      localStorage.removeItem('bookingData')
+    }
+  }, [])
+
+  // Load accepted AI requests
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadAIRequests()
+    }
+  }, [isAuthenticated])
+
+  const loadAIRequests = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch('http://localhost:5000/api/ai/customer-requests', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      const data = await response.json()
+      if (data.success) {
+        // Filter only accepted requests that can be booked
+        const acceptedRequests = data.data.filter(req => 
+          req.status === 'accepted' && req.providerResponse?.canBook
+        )
+        setAiRequests(acceptedRequests)
+      }
+    } catch (error) {
+      console.error('Load AI requests error:', error)
+    }
+  }
+
+  const handleBookAIRequest = (request) => {
+    const bookingData = {
+      requestId: request._id,
+      providerId: request.providerId._id,
+      eventType: request.eventType,
+      eventTitle: `${request.eventType} Event`,
+      generatedImage: request.generatedImage,
+      cost: request.providerResponse?.estimatedCost || 0,
+      provider: request.providerId?.businessName || 'Provider',
+      providerResponse: request.providerResponse
+    }
+    
+    localStorage.setItem('aiBookingData', JSON.stringify(bookingData))
+    window.location.href = '/book-event/ai-request'
+  }
 
   // Fetch bookings from API
-  const { data: bookingsData, isLoading } = useQuery({
+  const { data: bookingsData, isLoading, refetch } = useQuery({
     queryKey: ['customer-bookings', activeTab, searchQuery, sortBy],
     queryFn: async () => {
       try {
-        const params = {
+        const params = new URLSearchParams({
           page: 1,
           limit: 50
-        }
+        })
         
         if (activeTab !== 'all') {
-          params.status = activeTab === 'upcoming' ? 'confirmed' : activeTab
+          params.append('status', activeTab)
         }
         
-        const response = await bookingsAPI.getMyBookings(params)
-        return response.success ? response.data.bookings : []
+        const token = localStorage.getItem('token')
+        console.log('Fetching bookings with token:', token ? 'Present' : 'Missing')
+        
+        const response = await fetch(`http://localhost:5000/api/bookings/customer?${params}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+        
+        const result = await response.json()
+        console.log('Bookings API response:', result)
+        
+        if (!result.success) {
+          console.error('Bookings API error:', result.message)
+          toast.error(result.message || 'Failed to fetch bookings')
+        }
+        
+        return result.success ? result.data.bookings : []
       } catch (error) {
         console.error('Error fetching bookings:', error)
+        toast.error('Failed to fetch bookings')
         return []
       }
     },
     enabled: isAuthenticated,
-    staleTime: 5 * 60 * 1000
+    staleTime: 5 * 1000, // Refresh every 5 seconds for testing
+    refetchInterval: 10 * 1000 // Auto-refresh every 10 seconds
   })
   
   const bookings = bookingsData || []
+
+  // Check if returning from successful booking
+  useEffect(() => {
+    const latestBookingId = localStorage.getItem('latestBookingId')
+    if (latestBookingId) {
+      toast.success(`Booking ${latestBookingId} created successfully!`)
+      localStorage.removeItem('latestBookingId')
+      // Force refresh of bookings immediately and after delay
+      refetch()
+      setTimeout(() => refetch(), 2000)
+      setTimeout(() => refetch(), 5000)
+    }
+  }, [refetch])
+
+  const tabs = [
+    { id: 'all', label: 'All Bookings', count: bookings?.length || 0 },
+    { id: 'confirmed', label: 'Upcoming', count: bookings?.filter(b => b.status === 'confirmed').length || 0 },
+    { id: 'completed', label: 'Completed', count: bookings?.filter(b => b.status === 'completed').length || 0 },
+    { id: 'cancelled', label: 'Cancelled', count: bookings?.filter(b => b.status === 'cancelled').length || 0 }
+  ]
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -61,8 +157,10 @@ const CustomerBookingDashboard = () => {
         return 'bg-green-100 text-green-800 border-green-200'
       case 'pending':
         return 'bg-yellow-100 text-yellow-800 border-yellow-200'
-      case 'completed':
+      case 'in-progress':
         return 'bg-blue-100 text-blue-800 border-blue-200'
+      case 'completed':
+        return 'bg-emerald-100 text-emerald-800 border-emerald-200'
       case 'cancelled':
         return 'bg-red-100 text-red-800 border-red-200'
       default:
@@ -87,10 +185,40 @@ const CustomerBookingDashboard = () => {
 
   const filteredBookings = bookings.filter(booking => {
     const matchesTab = activeTab === 'all' || booking.status === activeTab
-    const matchesSearch = booking.eventTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         booking.provider.name.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesSearch = booking.eventTitle?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         booking.providerId?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         booking.providerId?.businessName?.toLowerCase().includes(searchQuery.toLowerCase())
     return matchesTab && matchesSearch
   })
+
+  const handleBookingSubmit = async (e) => {
+    e.preventDefault()
+    
+    try {
+      // Create booking with AI request data
+      const bookingPayload = {
+        ...bookingForm,
+        requestId: bookingData.requestId,
+        providerId: bookingData.providerId,
+        eventType: bookingData.eventType,
+        amount: bookingData.cost,
+        generatedImage: bookingData.generatedImage,
+        providerResponse: bookingData.providerResponse
+      }
+      
+      // Simulate booking creation
+      console.log('Creating booking:', bookingPayload)
+      
+      alert(`🎉 Booking confirmed!\n\nBooking ID: BK${Math.random().toString(36).substr(2, 9).toUpperCase()}\n\nYou will be contacted by the provider within 24 hours.`)
+      
+      setShowBookingForm(false)
+      setBookingData(null)
+      
+    } catch (error) {
+      console.error('Booking error:', error)
+      alert('Failed to create booking. Please try again.')
+    }
+  }
 
   if (isLoading) {
     return (
@@ -108,13 +236,147 @@ const CustomerBookingDashboard = () => {
     )
   }
 
+  // Show booking form if coming from AI request
+  if (showBookingForm && bookingData) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <h1 className="text-2xl font-bold text-gray-900 mb-6">Complete Your Booking</h1>
+            
+            {/* AI Request Summary */}
+            <div className="bg-blue-50 p-4 rounded-lg mb-6">
+              <h3 className="font-medium text-blue-900 mb-2">AI Generated Request</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-blue-700"><strong>Event Type:</strong> {bookingData.eventType}</p>
+                  <p className="text-sm text-blue-700"><strong>Final Price:</strong> ₹{bookingData.cost?.toLocaleString()}</p>
+                </div>
+                <div>
+                  {bookingData.generatedImage && (
+                    <img 
+                      src={bookingData.generatedImage.startsWith('data:') ? bookingData.generatedImage : `data:image/png;base64,${bookingData.generatedImage}`}
+                      alt="Your design concept"
+                      className="w-24 h-16 object-cover rounded"
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            {/* Booking Form */}
+            <form onSubmit={handleBookingSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Event Date *</label>
+                  <input
+                    type="date"
+                    required
+                    value={bookingForm.eventDate}
+                    onChange={(e) => setBookingForm({...bookingForm, eventDate: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Event Time *</label>
+                  <input
+                    type="time"
+                    required
+                    value={bookingForm.eventTime}
+                    onChange={(e) => setBookingForm({...bookingForm, eventTime: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Event Location *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Enter full address"
+                  value={bookingForm.location}
+                  onChange={(e) => setBookingForm({...bookingForm, location: e.target.value})}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Number of Guests *</label>
+                <input
+                  type="number"
+                  required
+                  placeholder="Expected number of guests"
+                  value={bookingForm.guests}
+                  onChange={(e) => setBookingForm({...bookingForm, guests: e.target.value})}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Special Requests</label>
+                <textarea
+                  placeholder="Any special requirements or notes..."
+                  value={bookingForm.specialRequests}
+                  onChange={(e) => setBookingForm({...bookingForm, specialRequests: e.target.value})}
+                  className="w-full p-3 border border-gray-300 rounded-lg h-24 focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              
+              {/* Provider Contact Info */}
+              {bookingData.providerResponse?.contactDetails && (
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="font-medium text-gray-900 mb-2">Provider Contact Details</h4>
+                  <div className="text-sm text-gray-600 space-y-1">
+                    <p>📞 {bookingData.providerResponse.contactDetails.phone}</p>
+                    <p>📧 {bookingData.providerResponse.contactDetails.email}</p>
+                    <p>📍 {bookingData.providerResponse.contactDetails.address}</p>
+                  </div>
+                </div>
+              )}
+              
+              <div className="flex space-x-4">
+                <Button
+                  type="submit"
+                  className="flex-1"
+                  style={{ backgroundColor: '#333f63' }}
+                >
+                  Confirm Booking - ₹{bookingData.cost?.toLocaleString()}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setShowBookingForm(false)
+                    setBookingData(null)
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">My Bookings</h1>
-          <p className="text-gray-600 mt-2">Manage and track all your event bookings</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">My Bookings</h1>
+              <p className="text-gray-600 mt-2">Manage and track all your event bookings</p>
+            </div>
+            <Button onClick={() => refetch()} variant="outline" size="sm">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Refresh
+            </Button>
+          </div>
         </div>
 
         {/* Tabs */}
@@ -168,6 +430,54 @@ const CustomerBookingDashboard = () => {
           </select>
         </div>
 
+        {/* AI Requests Ready for Booking */}
+        {aiRequests.length > 0 && (
+          <div className="mb-8">
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-blue-900">🤖 AI Requests Ready for Booking</h3>
+                  <p className="text-sm text-blue-700">Your AI requests have been accepted! Complete your booking now.</p>
+                </div>
+                <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                  {aiRequests.length} Ready
+                </span>
+              </div>
+              
+              <div className="grid gap-4">
+                {aiRequests.map((request) => (
+                  <div key={request._id} className="bg-white border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        {request.generatedImage && (
+                          <img 
+                            src={request.generatedImage.startsWith('data:') ? request.generatedImage : `data:image/png;base64,${request.generatedImage}`}
+                            alt="AI Generated Design"
+                            className="w-16 h-16 object-cover rounded-lg"
+                          />
+                        )}
+                        <div>
+                          <h4 className="font-medium text-gray-900">{request.eventType} Event</h4>
+                          <p className="text-sm text-gray-600">{request.providerId?.businessName}</p>
+                          <p className="text-sm font-medium text-green-600">
+                            ₹{request.providerResponse?.estimatedCost?.toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        onClick={() => handleBookAIRequest(request)}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        📅 Complete Booking
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Bookings List */}
         <div className="space-y-6">
           {filteredBookings.length === 0 ? (
@@ -186,7 +496,7 @@ const CustomerBookingDashboard = () => {
           ) : (
             filteredBookings.map((booking, index) => (
               <motion.div
-                key={booking.id}
+                key={booking._id || booking.id || booking.bookingId || index}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.1 }}
@@ -197,9 +507,10 @@ const CustomerBookingDashboard = () => {
                       {/* Event Image */}
                       <div className="lg:w-48 flex-shrink-0">
                         <img
-                          src={getImageUrl(booking.eventImage)}
+                          src={booking.eventImage || '/wedding.jpg'}
                           alt={booking.eventTitle}
                           className="w-full h-32 lg:h-full object-cover rounded-lg"
+                          onError={(e) => { e.target.src = '/wedding.jpg' }}
                         />
                       </div>
 
@@ -215,12 +526,17 @@ const CustomerBookingDashboard = () => {
                                 {getStatusIcon(booking.status)}
                                 <span className="capitalize">{booking.status}</span>
                               </span>
+                              {booking.isAIGenerated && (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 border border-purple-200">
+                                  🤖 AI Generated
+                                </span>
+                              )}
                             </div>
                             <p className="text-gray-600">Booking ID: {booking.bookingId}</p>
                           </div>
                           <div className="text-right">
                             <div className="text-2xl font-bold text-gray-900">
-                              {formatPrice(booking.amount)}
+                              ₹{booking.totalAmount?.toLocaleString()}
                             </div>
                             <div className={`text-sm ${
                               booking.paymentStatus === 'paid' 
@@ -235,7 +551,7 @@ const CustomerBookingDashboard = () => {
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-gray-600">
                           <div className="flex items-center space-x-2">
                             <Calendar className="w-4 h-4" />
-                            <span>{formatDate(new Date(booking.eventDate))}</span>
+                            <span>{new Date(booking.eventDate).toLocaleDateString()}</span>
                           </div>
                           <div className="flex items-center space-x-2">
                             <Clock className="w-4 h-4" />
@@ -243,7 +559,7 @@ const CustomerBookingDashboard = () => {
                           </div>
                           <div className="flex items-center space-x-2">
                             <MapPin className="w-4 h-4" />
-                            <span className="truncate">{booking.location}</span>
+                            <span className="truncate">{booking.venue || 'Venue TBD'}</span>
                           </div>
                           <div className="flex items-center space-x-2">
                             <Users className="w-4 h-4" />
@@ -253,31 +569,49 @@ const CustomerBookingDashboard = () => {
 
                         {/* Provider Info */}
                         <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                          <img
-                            src={booking.providerId?.profileImage || getImageUrl(booking.provider?.image)}
-                            alt={booking.providerId?.name || booking.provider?.name}
-                            className="w-10 h-10 rounded-full object-cover"
-                          />
+                          <div className="w-10 h-10 rounded-full bg-[#333f63] flex items-center justify-center text-white font-medium">
+                            {(booking.providerId?.businessName || booking.providerId?.name || 'P').charAt(0).toUpperCase()}
+                          </div>
                           <div className="flex-1">
-                            <h4 className="font-medium text-gray-900">{booking.provider.name}</h4>
+                            <h4 className="font-medium text-gray-900">{booking.providerId?.businessName || booking.providerId?.name}</h4>
                             <div className="flex items-center space-x-4 text-sm text-gray-600">
                               <div className="flex items-center space-x-1">
                                 <Phone className="w-3 h-3" />
-                                <span>{booking.provider.phone}</span>
+                                <span>{booking.providerId?.phone}</span>
                               </div>
                               <div className="flex items-center space-x-1">
                                 <Mail className="w-3 h-3" />
-                                <span>{booking.provider.email}</span>
+                                <span>{booking.providerId?.email}</span>
                               </div>
                             </div>
                           </div>
                         </div>
 
+                        {/* AI Generated Image */}
+                        {booking.isAIGenerated && booking.generatedImage && (
+                          <div className="p-3 bg-purple-50 rounded-lg">
+                            <h5 className="font-medium text-purple-900 mb-2">AI Generated Design</h5>
+                            <img 
+                              src={booking.generatedImage.startsWith('data:') ? booking.generatedImage : `data:image/png;base64,${booking.generatedImage}`}
+                              alt="AI Generated Design"
+                              className="w-32 h-20 object-cover rounded"
+                            />
+                          </div>
+                        )}
+                        
                         {/* Special Requests */}
                         {booking.specialRequests && (
                           <div className="p-3 bg-blue-50 rounded-lg">
                             <h5 className="font-medium text-blue-900 mb-1">Special Requests</h5>
                             <p className="text-sm text-blue-700">{booking.specialRequests}</p>
+                          </div>
+                        )}
+                        
+                        {/* Provider Notes */}
+                        {booking.providerNotes && (
+                          <div className="p-3 bg-green-50 rounded-lg">
+                            <h5 className="font-medium text-green-900 mb-1">Provider Notes</h5>
+                            <p className="text-sm text-green-700">{booking.providerNotes}</p>
                           </div>
                         )}
 

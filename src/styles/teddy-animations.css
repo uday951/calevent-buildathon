@@ -1,0 +1,121 @@
+/* Teddy Bot Custom Animations */
+
+@keyframes teddyWalk {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  25% { transform: translateY(-2px) rotate(-1deg); }
+  50% { transform: translateY(0px) rotate(0deg); }
+  75% { transform: translateY(-2px) rotate(1deg); }
+}
+
+@keyframes teddyBounce {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50% { transform: translateY(-10px) scale(1.05); }
+}
+
+@keyframes sparkle {
+  0%, 100% { opacity: 0; transform: scale(0.8) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1.2) rotate(180deg); }
+}
+
+@keyframes heartFloat {
+  0% { opacity: 0; transform: translateY(0px) scale(0.8); }
+  50% { opacity: 1; transform: translateY(-20px) scale(1); }
+  100% { opacity: 0; transform: translateY(-40px) scale(0.8); }
+}
+
+@keyframes bubblePop {
+  0% { transform: scale(0) rotate(-10deg); opacity: 0; }
+  50% { transform: scale(1.1) rotate(5deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+@keyframes teddyExcited {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  25% { transform: scale(1.1) rotate(-5deg); }
+  50% { transform: scale(1.2) rotate(0deg); }
+  75% { transform: scale(1.1) rotate(5deg); }
+}
+
+@keyframes confettiFall {
+  0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100px) rotate(360deg); opacity: 0; }
+}
+
+/* Teddy Character Classes */
+.teddy-walking {
+  animation: teddyWalk 1s ease-in-out infinite;
+}
+
+.teddy-bouncing {
+  animation: teddyBounce 0.6s ease-in-out infinite;
+}
+
+.teddy-excited {
+  animation: teddyExcited 0.8s ease-in-out;
+}
+
+.teddy-sparkles {
+  animation: sparkle 2s ease-in-out infinite;
+}
+
+.teddy-hearts {
+  animation: heartFloat 3s ease-in-out infinite;
+}
+
+.speech-bubble-pop {
+  animation: bubblePop 0.5s ease-out;
+}
+
+.confetti-particle {
+  animation: confettiFall 3s linear infinite;
+}
+
+/* Hover Effects */
+.teddy-container:hover .teddy-character {
+  animation: teddyBounce 0.6s ease-in-out infinite;
+}
+
+.teddy-container:hover .sparkle {
+  animation: sparkle 1s ease-in-out infinite;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .teddy-container {
+    transform: scale(0.8);
+  }
+  
+  .speech-bubble {
+    max-width: 200px;
+    font-size: 0.75rem;
+  }
+}
+
+/* Cute Wiggle Animation */
+@keyframes wiggle {
+  0%, 7%, 14%, 21%, 28%, 35%, 42%, 49%, 56%, 63%, 70%, 77%, 84%, 91%, 98%, 100% {
+    transform: rotate(0deg);
+  }
+  3.5%, 10.5%, 17.5%, 24.5%, 31.5%, 38.5%, 45.5%, 52.5%, 59.5%, 66.5%, 73.5%, 80.5%, 87.5%, 94.5% {
+    transform: rotate(-3deg);
+  }
+}
+
+.teddy-wiggle {
+  animation: wiggle 2s ease-in-out infinite;
+}
+
+/* Pulsing Glow Effect */
+@keyframes pulseGlow {
+  0%, 100% { 
+    box-shadow: 0 0 5px rgba(147, 51, 234, 0.3);
+  }
+  50% { 
+    box-shadow: 0 0 20px rgba(147, 51, 234, 0.6), 0 0 30px rgba(147, 51, 234, 0.4);
+  }
+}
+
+.teddy-glow {
+  animation: pulseGlow 2s ease-in-out infinite;
+  border-radius: 50%;
+}

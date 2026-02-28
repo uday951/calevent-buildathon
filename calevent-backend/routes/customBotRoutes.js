@@ -4,8 +4,10 @@ import {
   handleChatMessage, 
   generateImage, 
   handleImageAnalysis, 
-  testOpenAIAPI 
+  testOpenAIAPI,
+  sendImageRequestToProvider 
 } from '../controllers/chatbotController.js';
+import { optionalAuth } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -35,6 +37,9 @@ router.post('/analyze-image', upload.single('image'), handleImageAnalysis);
 
 // Test OpenAI API connection
 router.get('/test-openai', testOpenAIAPI);
+
+// Send image request to provider
+router.post('/send-image-request', optionalAuth, sendImageRequestToProvider);
 
 // Health check endpoint
 router.get('/health', (req, res) => {

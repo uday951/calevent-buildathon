@@ -20,10 +20,6 @@ import toast from 'react-hot-toast'
 const schema = yup.object({
   eventDate: yup.string().required('Event date is required'),
   eventTime: yup.string().required('Event time is required'),
-  guestCount: yup.number()
-    .min(1, 'At least 1 guest required')
-    .max(1000, 'Maximum 1000 guests allowed')
-    .required('Guest count is required'),
   customerName: yup.string().required('Name is required'),
   customerEmail: yup.string().email('Invalid email').required('Email is required'),
   customerPhone: yup.string()
@@ -42,10 +38,30 @@ const BookEventForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [event, setEvent] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [aiBookingData, setAiBookingData] = useState(null)
+  const [isAIBooking, setIsAIBooking] = useState(false)
 
-  // Fetch event data
+  // Check for AI booking data or fetch regular event data
   useEffect(() => {
-    console.log('BookEventForm eventId:', eventId)
+    const checkAIBooking = () => {
+      const savedAIData = localStorage.getItem('aiBookingData')
+      if (savedAIData && eventId === 'ai-request') {
+        const aiData = JSON.parse(savedAIData)
+        setAiBookingData(aiData)
+        setIsAIBooking(true)
+        setEvent({
+          _id: 'ai-generated',
+          title: aiData.eventTitle,
+          provider: aiData.provider,
+          price: aiData.cost,
+          image: aiData.generatedImage
+        })
+        localStorage.removeItem('aiBookingData')
+        setLoading(false)
+        return
+      }
+    }
+
     const fetchEvent = async () => {
       try {
         if (!eventId || eventId === 'undefined') {
@@ -69,7 +85,9 @@ const BookEventForm = () => {
       }
     }
 
-    if (eventId && eventId !== 'undefined') {
+    if (eventId === 'ai-request') {
+      checkAIBooking()
+    } else if (eventId && eventId !== 'undefined') {
       fetchEvent()
     } else {
       setLoading(false)
@@ -92,7 +110,6 @@ const BookEventForm = () => {
   } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
-      guestCount: event?.minCapacity || 100,
       eventDate: '',
       eventTime: '10:00',
       paymentMethod: 'card',
@@ -103,13 +120,10 @@ const BookEventForm = () => {
   })
 
   const watchedValues = watch()
-  const guestCount = watchedValues.guestCount || 100
 
   // Calculate pricing
   const basePrice = event?.price || 0
-  const minGuests = event?.minCapacity || 100
-  const guestPrice = guestCount > minGuests ? (guestCount - minGuests) * 500 : 0
-  const subtotal = basePrice + guestPrice
+  const subtotal = basePrice
   const tax = subtotal * 0.18 // 18% GST
   const total = subtotal + tax
 
@@ -157,39 +171,75 @@ const BookEventForm = () => {
   }
 
   const onSubmit = async (data) => {
-    if (currentStep < 4) {
+    if (currentStep < 3) {
       handleNextStep()
+      return
+    }
+    
+    if (currentStep === 4) {
+      // Already completed, just navigate
+      navigate('/bookings')
       return
     }
 
     setIsSubmitting(true)
     try {
-      const bookingData = {
-        eventId: event._id,
+      const bookingPayload = {
         eventDate: data.eventDate,
         eventTime: data.eventTime,
         venue: data.venue,
-        guestCount: data.guestCount,
-        specialRequirements: data.specialRequests,
+        guests: 50, // Default guest count
         contactDetails: {
           name: data.customerName,
           email: data.customerEmail,
           phone: data.customerPhone
         },
-        paymentMethod: data.paymentMethod
+        paymentMethod: data.paymentMethod,
+        specialRequests: data.specialRequests
+      }
+
+      if (isAIBooking) {
+        // AI booking specific fields
+        bookingPayload.isAIGenerated = true
+        bookingPayload.requestId = aiBookingData.requestId
+        bookingPayload.providerId = aiBookingData.providerId
+        bookingPayload.eventType = aiBookingData.eventType
+        bookingPayload.amount = aiBookingData.cost
+        bookingPayload.generatedImage = aiBookingData.generatedImage
+        bookingPayload.eventTitle = aiBookingData.eventTitle
+      } else {
+        // Regular event booking
+        bookingPayload.eventId = event._id
       }
       
-      const response = await bookingsAPI.createBooking(bookingData)
+      const token = localStorage.getItem('token')
+      console.log('Creating booking with token:', token ? 'Present' : 'Missing')
+      console.log('Booking payload:', bookingPayload)
       
-      if (response.success) {
+      const response = await fetch('http://localhost:5000/api/bookings/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(bookingPayload)
+      })
+      
+      console.log('Booking response status:', response.status)
+      
+      const result = await response.json()
+      
+      if (result.success) {
         toast.success('Booking created successfully!')
-        navigate('/bookings')
+        // Store the booking ID for confirmation
+        localStorage.setItem('latestBookingId', result.data.booking.bookingId)
+        setCurrentStep(4)
       } else {
-        toast.error(response.message || 'Booking failed')
+        toast.error(result.message || 'Booking failed')
       }
     } catch (error) {
       console.error('Booking error:', error)
-      toast.error(error.message || 'Booking failed. Please try again.')
+      toast.error('Booking failed. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
@@ -237,27 +287,7 @@ const BookEventForm = () => {
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Number of Guests *
-              </label>
-              <div className="relative">
-                <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <Input
-                  type="number"
-                  min="1"
-                  max="1000"
-                  className="pl-10"
-                  {...register('guestCount', { valueAsNumber: true })}
-                />
-              </div>
-              {errors.guestCount && (
-                <p className="mt-1 text-sm text-red-600">{errors.guestCount.message}</p>
-              )}
-              <p className="mt-1 text-sm text-gray-500">
-                Base package includes 100 guests. Additional guests: ₹500 each
-              </p>
-            </div>
+
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -469,10 +499,7 @@ const BookEventForm = () => {
                   <span>Time:</span>
                   <span className="font-medium">{watchedValues.eventTime}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Guests:</span>
-                  <span className="font-medium">{guestCount}</span>
-                </div>
+
                 <div className="flex justify-between">
                   <span>Venue:</span>
                   <span className="font-medium">{watchedValues.venue}</span>
@@ -505,8 +532,17 @@ const BookEventForm = () => {
             <ArrowLeft className="w-4 h-4" />
             <span>Back</span>
           </button>
-          <h1 className="text-3xl font-bold text-gray-900">Book Event</h1>
+          <h1 className="text-3xl font-bold text-gray-900">
+            {isAIBooking ? 'Complete AI Booking' : 'Book Event'}
+          </h1>
           <p className="text-gray-600 mt-2">{event.title} by {event.provider}</p>
+          {isAIBooking && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-3">
+              <p className="text-sm text-blue-700">
+                🤖 This booking is based on your AI-generated request and provider acceptance
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Progress Steps */}
@@ -563,13 +599,21 @@ const BookEventForm = () => {
                     )}
                     
                     <div className="ml-auto">
-                      {currentStep < 4 ? (
+                      {currentStep < 3 ? (
                         <Button 
                           type="button"
                           onClick={handleNextStep}
                           disabled={isSubmitting}
                         >
                           Next Step
+                        </Button>
+                      ) : currentStep === 3 ? (
+                        <Button
+                          type="submit"
+                          disabled={isSubmitting}
+                          className="bg-[#333f63] hover:bg-[#2a3555]"
+                        >
+                          {isSubmitting ? 'Creating Booking...' : 'Confirm Booking'}
                         </Button>
                       ) : (
                         <Button
@@ -597,30 +641,28 @@ const BookEventForm = () => {
                 <div className="space-y-4">
                   <div className="flex items-center space-x-3">
                     <img
-                      src={event.image}
+                      src={isAIBooking && event.image ? 
+                        (event.image.startsWith('data:') ? event.image : `data:image/png;base64,${event.image}`) : 
+                        event.image
+                      }
                       alt={event.title}
                       className="w-16 h-16 rounded-lg object-cover"
                     />
                     <div>
                       <h4 className="font-semibold">{event.title}</h4>
                       <p className="text-sm text-gray-600">{event.provider}</p>
+                      {isAIBooking && (
+                        <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full mt-1">
+                          AI Generated
+                        </span>
+                      )}
                     </div>
                   </div>
 
                   <div className="border-t pt-4 space-y-3">
                     <div className="flex justify-between text-sm">
-                      <span>Base package (100 guests)</span>
+                      <span>Event Package</span>
                       <span>{formatPrice(basePrice)}</span>
-                    </div>
-                    {guestCount > 100 && (
-                      <div className="flex justify-between text-sm">
-                        <span>Additional guests ({guestCount - 100})</span>
-                        <span>{formatPrice(guestPrice)}</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between text-sm">
-                      <span>Subtotal</span>
-                      <span>{formatPrice(subtotal)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span>GST (18%)</span>
@@ -645,10 +687,16 @@ const BookEventForm = () => {
                           <span>Time:</span>
                           <span className="font-medium">{watchedValues.eventTime}</span>
                         </div>
-                        <div className="flex justify-between">
-                          <span>Guests:</span>
-                          <span className="font-medium">{guestCount}</span>
-                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {isAIBooking && aiBookingData?.providerResponse?.contactDetails && (
+                    <div className="bg-green-50 rounded-lg p-3 mt-4">
+                      <h5 className="font-medium text-green-900 mb-2">Provider Contact</h5>
+                      <div className="text-sm text-green-700 space-y-1">
+                        <p>📞 {aiBookingData.providerResponse.contactDetails.phone}</p>
+                        <p>📧 {aiBookingData.providerResponse.contactDetails.email}</p>
                       </div>
                     </div>
                   )}

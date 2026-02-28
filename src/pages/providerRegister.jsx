@@ -108,7 +108,12 @@ const ProviderRegister = () => {
       
       const result = await registerUser(userData, 'provider')
       if (result.success) {
-        navigate('/provider/dashboard')
+        if (result.hasToken !== false) {
+          navigate('/provider/dashboard')
+        } else {
+          // No token means pending admin approval
+          navigate('/login/provider')
+        }
       }
     } catch (error) {
       toast.error('Registration failed. Please try again.')

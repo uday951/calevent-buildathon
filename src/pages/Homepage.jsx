@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Search, MapPin, Calendar, Users, Star, ArrowRight, Phone, Mail, MapPin as LocationIcon } from 'lucide-react'
@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import EventCard from '@/components/EventCard'
 import { providersAPI } from '@/services/api'
+import EnhancedTeddyBot from '../components/EnhancedTeddyBot'
 
 // Available event images from public folder
 const eventImages = [
@@ -39,7 +40,24 @@ const Homepage = () => {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [topProviders, setTopProviders] = useState([])
   const [loading, setLoading] = useState(true)
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [suggestions, setSuggestions] = useState([])
+  const [eventSuggestions, setEventSuggestions] = useState([])
+  const [anime, setAnime] = useState(null)
+  const categoriesRef = useRef(null)
+  const categoryCardsRef = useRef([])
   const navigate = useNavigate()
+
+  // Load anime.js dynamically
+  useEffect(() => {
+    import('animejs').then((module) => {
+      // animejs uses CommonJS export, Vite wraps it in .default
+      const animeFunc = module.default
+      if (typeof animeFunc === 'function') {
+        setAnime(() => animeFunc)
+      }
+    }).catch(err => console.error('Failed to load anime.js:', err))
+  }, [])
 
   const handleSearch = (e) => {
     e.preventDefault()
@@ -65,6 +83,18 @@ const Homepage = () => {
     { name: 'Parties', icon: '🎉', count: '300+' }
   ]
 
+  const popularSearches = [
+    'Wedding Photography',
+    'Birthday Party Decoration',
+    'Corporate Event Planning',
+    'Anniversary Celebration',
+    'Conference Venue',
+    'Party Catering',
+    'Wedding Venue',
+    'DJ Services',
+    'Event Management'
+  ]
+
   // Fetch top providers from API
   useEffect(() => {
     const fetchTopProviders = async () => {
@@ -82,6 +112,104 @@ const Homepage = () => {
     
     fetchTopProviders()
   }, [])
+
+  // Anime.js Categories Animation
+  useEffect(() => {
+    if (!anime) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            // Animate category cards with staggered effect
+            anime({
+              targets: '.category-card',
+              translateY: [50, 0],
+              opacity: [0, 1],
+              scale: [0.8, 1],
+              rotate: [5, 0],
+              duration: 800,
+              delay: anime.stagger(100),
+              easing: 'easeOutElastic(1, .8)'
+            })
+
+            // Animate section title
+            anime({
+              targets: '.categories-title',
+              translateY: [30, 0],
+              opacity: [0, 1],
+              duration: 600,
+              easing: 'easeOutQuad'
+            })
+
+            // Animate section subtitle
+            anime({
+              targets: '.categories-subtitle',
+              translateY: [20, 0],
+              opacity: [0, 1],
+              duration: 600,
+              delay: 200,
+              easing: 'easeOutQuad'
+            })
+
+            observer.unobserve(entry.target)
+          }
+        })
+      },
+      { threshold: 0.1 }
+    )
+
+    if (categoriesRef.current) {
+      observer.observe(categoriesRef.current)
+    }
+
+    return () => observer.disconnect()
+  }, [anime])
+
+  // Category hover animations
+  const handleCategoryHover = (index, isHovering) => {
+    if (!anime) return
+    const card = categoryCardsRef.current[index]
+    if (!card) return
+
+    if (isHovering) {
+      anime({
+        targets: card,
+        translateY: -10,
+        scale: 1.05,
+        boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+        duration: 300,
+        easing: 'easeOutQuad'
+      })
+      
+      // Animate icon
+      anime({
+        targets: card.querySelector('.category-icon'),
+        scale: 1.2,
+        rotate: 10,
+        duration: 300,
+        easing: 'easeOutBack(1.7)'
+      })
+    } else {
+      anime({
+        targets: card,
+        translateY: 0,
+        scale: 1,
+        boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+        duration: 300,
+        easing: 'easeOutQuad'
+      })
+      
+      // Reset icon
+      anime({
+        targets: card.querySelector('.category-icon'),
+        scale: 1,
+        rotate: 0,
+        duration: 300,
+        easing: 'easeOutBack(1.7)'
+      })
+    }
+  }
 
   const testimonials = [
     {
@@ -120,6 +248,83 @@ const Homepage = () => {
     }, 5000)
     return () => clearInterval(timer)
   }, [])
+
+  // Handle search suggestions with real events
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (searchQuery.length > 1) {
+        try {
+          // Get popular search matches
+          const filteredSuggestions = popularSearches.filter(search => 
+            search.toLowerCase().includes(searchQuery.toLowerCase())
+          )
+          
+          // Get category matches
+          const categoryMatches = categories.filter(cat => 
+            cat.name.toLowerCase().includes(searchQuery.toLowerCase())
+          ).map(cat => cat.name)
+          
+          // Fetch real events that match the search
+          const { eventsAPI } = await import('@/services/api')
+          const response = await eventsAPI.getAllEvents({
+            search: searchQuery,
+            limit: 5
+          })
+          
+          const eventTitles = response.success ? 
+            response.data.events.map(event => event.title) : []
+          
+          // Combine all suggestions
+          const allSuggestions = [
+            ...filteredSuggestions,
+            ...categoryMatches,
+            ...eventTitles
+          ]
+          
+          const uniqueSuggestions = [...new Set(allSuggestions)].slice(0, 6)
+          setSuggestions(uniqueSuggestions)
+          setEventSuggestions(eventTitles)
+          setShowSuggestions(true)
+        } catch (error) {
+          console.error('Error fetching suggestions:', error)
+          // Fallback to static suggestions
+          const filteredSuggestions = popularSearches.filter(search => 
+            search.toLowerCase().includes(searchQuery.toLowerCase())
+          )
+          const categoryMatches = categories.filter(cat => 
+            cat.name.toLowerCase().includes(searchQuery.toLowerCase())
+          ).map(cat => cat.name)
+          
+          const allSuggestions = [...new Set([...filteredSuggestions, ...categoryMatches])].slice(0, 5)
+          setSuggestions(allSuggestions)
+          setShowSuggestions(allSuggestions.length > 0)
+        }
+      } else {
+        setSuggestions([])
+        setEventSuggestions([])
+        setShowSuggestions(false)
+      }
+    }
+    
+    const debounceTimer = setTimeout(fetchSuggestions, 300)
+    return () => clearTimeout(debounceTimer)
+  }, [searchQuery])
+
+  const handleSuggestionClick = (suggestion) => {
+    setSearchQuery(suggestion)
+    setShowSuggestions(false)
+    navigate(`/AllEvent?search=${encodeURIComponent(suggestion)}`)
+  }
+
+  const handleSearchFocus = () => {
+    if (searchQuery.length > 0 && suggestions.length > 0) {
+      setShowSuggestions(true)
+    }
+  }
+
+  const handleSearchBlur = () => {
+    setTimeout(() => setShowSuggestions(false), 200)
+  }
 
   return (
     <div className="min-h-screen">
@@ -174,14 +379,50 @@ const Homepage = () => {
           >
             <div className="flex flex-col md:flex-row gap-4 bg-white/10 backdrop-blur-md p-4 rounded-2xl">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
                 <Input
                   placeholder="Search events, venues, or services..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch(e)}
+                  onFocus={handleSearchFocus}
+                  onBlur={handleSearchBlur}
                   className="pl-10 bg-white border-0 h-12 text-gray-900 placeholder-gray-500"
                 />
+                
+                {/* Search Suggestions */}
+                {showSuggestions && (
+                  <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mt-1 z-50 max-h-60 overflow-y-auto">
+                    {suggestions.length > 0 ? (
+                      suggestions.map((suggestion, index) => {
+                        const isEvent = eventSuggestions.includes(suggestion)
+                        return (
+                          <button
+                            key={index}
+                            onClick={() => handleSuggestionClick(suggestion)}
+                            className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 flex items-center space-x-3 text-gray-700"
+                          >
+                            {isEvent ? (
+                              <Calendar className="w-4 h-4 text-blue-500" />
+                            ) : (
+                              <Search className="w-4 h-4 text-gray-400" />
+                            )}
+                            <span>{suggestion}</span>
+                            {isEvent && (
+                              <span className="ml-auto text-xs text-blue-500 bg-blue-50 px-2 py-1 rounded">
+                                Event
+                              </span>
+                            )}
+                          </button>
+                        )
+                      })
+                    ) : searchQuery.length > 1 ? (
+                      <div className="px-4 py-3 text-gray-500 text-center">
+                        No results found for "{searchQuery}"
+                      </div>
+                    ) : null}
+                  </div>
+                )}
               </div>
               <Button size="lg" className="h-12 px-8" onClick={handleSearch}>
                 Search Events
@@ -220,36 +461,47 @@ const Homepage = () => {
         </div>
       </section>
 
-      {/* Categories Section */}
-      <section className="py-20 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-4">
+      {/* Categories Section with Anime.js */}
+      <section ref={categoriesRef} className="py-20 bg-gradient-to-br from-slate-50 to-blue-50 relative overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute top-10 left-10 w-32 h-32 bg-purple-500 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-10 right-10 w-40 h-40 bg-blue-500 rounded-full blur-3xl"></div>
+        </div>
+        
+        <div className="max-w-7xl mx-auto px-4 relative">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-slate-900 mb-4">
+            <h2 className="categories-title text-4xl font-bold text-slate-900 mb-4 opacity-0">
               Popular Event Categories
             </h2>
-            <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+            <p className="categories-subtitle text-xl text-slate-600 max-w-2xl mx-auto opacity-0">
               Discover amazing events across different categories
             </p>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
             {categories.map((category, index) => (
-              <motion.div
+              <div
                 key={category.name}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                whileHover={{ y: -5 }}
-                className="group cursor-pointer"
+                ref={(el) => (categoryCardsRef.current[index] = el)}
+                className="category-card opacity-0 cursor-pointer"
+                onMouseEnter={() => handleCategoryHover(index, true)}
+                onMouseLeave={() => handleCategoryHover(index, false)}
               >
                 <Link to={`/category/${category.name.toLowerCase()}`}>
-                  <div className="bg-gradient-to-br from-white to-slate-50 p-7 rounded-2xl text-slate-800 text-center shadow-lg group-hover:shadow-xl transition-all duration-300 border border-slate-200 hover:border-slate-300">
-                    <div className="text-5xl mb-4">{category.icon}</div>
-                    <h3 className="font-semibold text-lg mb-1">{category.name}</h3>
-                    <p className="text-sm text-slate-600">{category.count} events</p>
+                  <div className="bg-gradient-to-br from-white via-slate-50 to-blue-50 p-7 rounded-2xl text-slate-800 text-center shadow-lg border border-slate-200 relative overflow-hidden group">
+                    {/* Shimmer effect */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                    
+                    <div className="category-icon text-5xl mb-4 relative z-10">{category.icon}</div>
+                    <h3 className="font-semibold text-lg mb-1 relative z-10">{category.name}</h3>
+                    <p className="text-sm text-slate-600 relative z-10">{category.count} events</p>
+                    
+                    {/* Hover glow effect */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   </div>
                 </Link>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -388,7 +640,7 @@ const Homepage = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div>
                 <h2 className="text-4xl font-bold mb-6">
-                  Ready to Plan Your Perfect Event?
+                  Need Help Planning Your Event?
                 </h2>
                 <p className="text-xl mb-8 text-gray-200">
                   Get in touch with our team and let's make your vision come to life
@@ -433,7 +685,7 @@ const Homepage = () => {
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <div className="text-2xl font-bold bg-gradient-to-r from-black to-[#333f63] bg-clip-text text-transparent mb-4">
+              <div className="text-2xl font-bold text-white mb-4">
                 CALEVENT
               </div>
               <p className="text-gray-400 mb-4">
@@ -489,6 +741,9 @@ const Homepage = () => {
           </div>
         </div>
       </footer>
+
+      {/* Enhanced Teddy Chatbot */}
+      <EnhancedTeddyBot />
     </div>
   )
 }

@@ -93,14 +93,19 @@ export const AuthProvider = ({ children }) => {
       }
 
       if (response.success) {
-        const { token: newToken, [userType]: newUserData } = response.data
-        
-        localStorage.setItem('token', newToken)
-        setToken(newToken)
-        setUser({ ...newUserData, role: userType })
-        
-        toast.success(response.message || 'Registration successful!')
-        return { success: true, user: { ...newUserData, role: userType } }
+        if (response.data && response.data.token) {
+          const { token: newToken, [userType]: newUserData } = response.data
+          
+          localStorage.setItem('token', newToken)
+          setToken(newToken)
+          setUser({ ...newUserData, role: userType })
+          
+          toast.success(response.message || 'Registration successful!')
+          return { success: true, user: { ...newUserData, role: userType }, hasToken: true }
+        } else {
+          toast.success(response.message || 'Registration successful! Pending admin approval.')
+          return { success: true, hasToken: false, message: response.message }
+        }
       } else {
         toast.error(response.message || 'Registration failed')
         return { success: false, message: response.message }

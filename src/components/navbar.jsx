@@ -17,6 +17,7 @@ const Navbar = () => {
     { name: 'Categories', href: '/categories' },
     { name: 'Browse Events', href: '/events' },
     { name: 'Combo Events', href: '/combo' },
+    { name: ' EVO Assistant', href: '/ai-dashboard' },
   ]
 
   const isActive = (path) => location.pathname === path

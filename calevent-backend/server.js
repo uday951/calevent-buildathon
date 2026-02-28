@@ -22,6 +22,8 @@ import searchRoutes from './routes/searchRoutes.js';
 import feedRoutes from './routes/feedRoutes.js';
 import imageRoutes from './routes/imageRoutes.js';
 import comboRoutes from './routes/comboRoutes.js';
+import aiRoutes from './routes/aiRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 
 // Get current directory
 const __filename = fileURLToPath(import.meta.url);
@@ -92,6 +94,8 @@ app.use('/api/search', searchRoutes);
 app.use('/api/feed', feedRoutes);
 app.use('/api/image', imageRoutes);
 app.use('/api/combo', comboRoutes);
+app.use('/api/ai', aiRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {
@@ -111,7 +115,8 @@ app.get('/', (req, res) => {
       search: '/api/search',
       feed: '/api/feed',
       image: '/api/image',
-      combo: '/api/combo'
+      combo: '/api/combo',
+      ai: '/api/ai'
     }
   });
 });

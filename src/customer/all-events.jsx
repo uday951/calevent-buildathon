@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Search, Filter, Grid, List, SlidersHorizontal } from 'lucide-react'
@@ -7,6 +7,23 @@ import { eventsAPI } from '@/services/api'
 import EventCard from '@/components/EventCard'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+
+// Debounce hook
+const useDebounce = (value, delay) => {
+  const [debouncedValue, setDebouncedValue] = useState(value)
+  
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value)
+    }, delay)
+    
+    return () => {
+      clearTimeout(handler)
+    }
+  }, [value, delay])
+  
+  return debouncedValue
+}
 
 const AllEvents = () => {
   const [searchParams] = useSearchParams()
@@ -17,6 +34,13 @@ const AllEvents = () => {
   const [showFilters, setShowFilters] = useState(false)
   const [priceRange, setPriceRange] = useState([0, 100000])
   const [location, setLocation] = useState('')
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [suggestions, setSuggestions] = useState([])
+  
+  // Debounced values to prevent flickering
+  const debouncedSearchQuery = useDebounce(searchQuery, 500)
+  const debouncedPriceRange = useDebounce(priceRange, 800)
+  const debouncedLocation = useDebounce(location, 500)
 
   // Handle URL parameters for category filtering and search
   useEffect(() => {
@@ -49,7 +73,7 @@ const AllEvents = () => {
 
   // Fetch events from API
   const { data: eventsData, isLoading, error } = useQuery({
-    queryKey: ['events', selectedCategory, searchQuery, sortBy, location, priceRange],
+    queryKey: ['events', selectedCategory, debouncedSearchQuery, sortBy, debouncedLocation, debouncedPriceRange],
     queryFn: async () => {
       const params = {
         page: 1,
@@ -62,20 +86,20 @@ const AllEvents = () => {
         params.category = selectedCategory
       }
       
-      if (searchQuery) {
-        params.search = searchQuery
+      if (debouncedSearchQuery) {
+        params.search = debouncedSearchQuery
       }
       
-      if (location) {
-        params.location = location
+      if (debouncedLocation) {
+        params.location = debouncedLocation
       }
       
-      if (priceRange[0] > 0) {
-        params.minPrice = priceRange[0]
+      if (debouncedPriceRange[0] > 0) {
+        params.minPrice = debouncedPriceRange[0]
       }
       
-      if (priceRange[1] < 100000) {
-        params.maxPrice = priceRange[1]
+      if (debouncedPriceRange[1] < 100000) {
+        params.maxPrice = debouncedPriceRange[1]
       }
       
       try {
@@ -93,6 +117,41 @@ const AllEvents = () => {
   const events = eventsData || []
 
   const filteredAndSortedEvents = events
+
+  // Generate search suggestions
+  useEffect(() => {
+    if (searchQuery.length > 0) {
+      const eventTitles = events.map(event => event.title).filter(title => 
+        title.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+      const eventCategories = categories.filter(cat => 
+        cat.name.toLowerCase().includes(searchQuery.toLowerCase())
+      ).map(cat => cat.name)
+      
+      const allSuggestions = [...new Set([...eventTitles, ...eventCategories])].slice(0, 5)
+      setSuggestions(allSuggestions)
+      setShowSuggestions(allSuggestions.length > 0)
+    } else {
+      setSuggestions([])
+      setShowSuggestions(false)
+    }
+  }, [searchQuery, events])
+
+  const handleSuggestionClick = (suggestion) => {
+    setSearchQuery(suggestion)
+    setShowSuggestions(false)
+  }
+
+  const handleSearchFocus = () => {
+    if (suggestions.length > 0) {
+      setShowSuggestions(true)
+    }
+  }
+
+  const handleSearchBlur = () => {
+    // Delay hiding suggestions to allow clicking
+    setTimeout(() => setShowSuggestions(false), 200)
+  }
 
   if (isLoading) {
     return (
@@ -130,13 +189,31 @@ const AllEvents = () => {
             
             <div className="flex items-center space-x-4">
               <div className="relative flex-1 lg:w-80">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
                 <Input
                   placeholder="Search events..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={handleSearchFocus}
+                  onBlur={handleSearchBlur}
                   className="pl-10"
                 />
+                
+                {/* Search Suggestions */}
+                {showSuggestions && suggestions.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mt-1 z-50 max-h-60 overflow-y-auto">
+                    {suggestions.map((suggestion, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleSuggestionClick(suggestion)}
+                        className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 flex items-center space-x-3"
+                      >
+                        <Search className="w-4 h-4 text-gray-400" />
+                        <span className="text-gray-700">{suggestion}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
               
               <Button

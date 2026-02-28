@@ -1,14 +1,14 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
+import { AdminProvider } from '@/contexts/AdminContext'
 import Navbar from '@/components/navbar'
 import Homepage from '@/pages/Homepage'
-import Chatbot from '@/components/Chatbot'
+
 import { Toaster } from 'react-hot-toast'
 import './App.css'
 
 // Lazy load components for better performance
 import { lazy, Suspense } from 'react'
-
 const AllEvents = lazy(() => import('@/customer/all-events'))
 const Categories = lazy(() => import('@/pages/Categories'))
 const CategoryPage = lazy(() => import('@/pages/CategoryPage'))
@@ -36,6 +36,10 @@ const Messages = lazy(() => import('@/provider/Messages'))
 const CustomerMessages = lazy(() => import('@/customer/Messages'))
 const CustomerProfile = lazy(() => import('@/pages/CustomerProfile'))
 const Favorites = lazy(() => import('@/pages/Favorites'))
+const AIDashboard = lazy(() => import('./pages/AIDashboardPage'))
+const ProviderRequests = lazy(() => import('@/pages/ProviderRequests'))
+const AdminLogin = lazy(() => import('@/pages/AdminLogin'))
+const AdminDashboard = lazy(() => import('@/pages/AdminDashboard'))
 
 // Loading component
 const LoadingSpinner = () => (
@@ -63,13 +67,25 @@ const ProtectedRoute = ({ children, requiredRole }) => {
   return children
 }
 
+// Admin Protected Route
+const AdminRoute = ({ children }) => {
+  const adminToken = localStorage.getItem('adminToken');
+  
+  if (!adminToken) {
+    return <Navigate to="/admin/login" replace />
+  }
+  
+  return children
+}
+
 function App() {
   return (
     <AuthProvider>
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <Suspense fallback={<LoadingSpinner />}>
-          <Routes>
+      <AdminProvider>
+        <div className="min-h-screen bg-gray-50">
+          <Navbar />
+          <Suspense fallback={<LoadingSpinner />}>
+            <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Homepage />} />
             <Route path="/events" element={<AllEvents />} />
@@ -79,8 +95,17 @@ function App() {
             <Route path="/combo" element={<ComboEvents />} />
             <Route path="/combo/:id" element={<ComboDetails />} />
             <Route path="/providers" element={<Providers />} />
+            <Route path="/ai-dashboard" element={<AIDashboard />} />
             <Route path="/event/:eventId" element={<EventDetail />} />
             <Route path="/provider/profile/:providerId" element={<ProviderPublicProfile />} />
+            
+            {/* Admin Routes */}
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin/dashboard" element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
+            } />
             
             {/* Authentication Routes */}
             <Route path="/login/customer" element={<CustomerLogin />} />
@@ -134,6 +159,7 @@ function App() {
               <Route path="profile" element={<ProviderProfile />} />
               <Route path="analytics" element={<ProviderAnalytics />} />
               <Route path="settings" element={<ProviderSettings />} />
+              <Route path="requests" element={<ProviderRequests />} />
             </Route>
             
             {/* 404 Route */}
@@ -150,7 +176,7 @@ function App() {
             } />
           </Routes>
         </Suspense>
-        <Chatbot />
+
         <Toaster 
           position="top-right"
           toastOptions={{
@@ -168,6 +194,7 @@ function App() {
           }}
         />
       </div>
+      </AdminProvider>
     </AuthProvider>
   )
 }

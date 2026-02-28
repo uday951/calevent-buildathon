@@ -143,14 +143,7 @@ const ProviderLogin = () => {
             </Button>
           </form>
 
-          {/* Test Credentials */}
-          <div className="mt-8 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <h3 className="font-semibold text-green-900 mb-2">Test Credentials</h3>
-            <div className="text-sm text-green-700 space-y-1">
-              <p><strong>Email:</strong> provider@test.com</p>
-              <p><strong>Password:</strong> password123</p>
-            </div>
-          </div>
+
 
           {/* Provider Benefits */}
           <div className="mt-8 p-4 bg-blue-50 rounded-lg">

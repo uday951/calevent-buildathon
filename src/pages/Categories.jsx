@@ -10,7 +10,7 @@ const Categories = () => {
       id: 'wedding',
       name: 'Weddings',
       description: 'Make your special day unforgettable with our premium wedding services',
-      image: '/images/weddings/1.jpg',
+      image: '/wedding.jpg',
       eventCount: 150,
       avgPrice: '₹2,50,000',
       features: ['Venue Decoration', 'Photography', 'Catering', 'Entertainment'],
@@ -20,7 +20,7 @@ const Categories = () => {
       id: 'corporate',
       name: 'Corporate Events',
       description: 'Professional corporate events and business gatherings',
-      image: '/images/corporate/1.jpg',
+      image: '/public/corporate/3b2d72e0-8816-429a-8b95-d534b8849067.jpg',
       eventCount: 89,
       avgPrice: '₹1,50,000',
       features: ['Conference Halls', 'AV Equipment', 'Catering', 'Networking'],
@@ -30,7 +30,7 @@ const Categories = () => {
       id: 'birthday',
       name: 'Birthday Parties',
       description: 'Celebrate birthdays with joy and memorable experiences',
-      image: '/images/Birthdays/1.jpg',
+      image: '/public/Birthdays/WhatsApp Image 2025-09-11 at 3.02.23 PM.jpeg',
       eventCount: 120,
       avgPrice: '₹75,000',
       features: ['Theme Decoration', 'Entertainment', 'Cake & Catering', 'Photography'],
@@ -40,7 +40,7 @@ const Categories = () => {
       id: 'parties',
       name: 'Parties & Celebrations',
       description: 'Fun-filled parties and special celebrations for all occasions',
-      image: '/images/parties/1.jpg',
+      image: '/djevent.jpg',
       eventCount: 95,
       avgPrice: '₹1,00,000',
       features: ['DJ & Music', 'Lighting', 'Catering', 'Decoration'],
@@ -50,7 +50,7 @@ const Categories = () => {
       id: 'anniversary',
       name: 'Anniversaries',
       description: 'Romantic anniversary celebrations and milestone events',
-      image: '/images/weddings/2.jpg',
+      image: '/wedding22.jpg',
       eventCount: 45,
       avgPrice: '₹1,25,000',
       features: ['Romantic Setup', 'Fine Dining', 'Photography', 'Entertainment'],
@@ -60,7 +60,7 @@ const Categories = () => {
       id: 'conference',
       name: 'Conferences',
       description: 'Professional conferences and business seminars',
-      image: '/images/corporate/2.jpg',
+      image: '/conference.jpg',
       eventCount: 67,
       avgPrice: '₹2,00,000',
       features: ['Large Venues', 'AV Technology', 'Catering', 'Registration'],
@@ -128,7 +128,7 @@ const Categories = () => {
                     alt={category.name}
                     className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                     onError={(e) => {
-                      e.target.src = `/images/${category.id}/default.jpg`
+                      e.target.src = '/ambience.jpg'
                     }}
                   />
                   <div className={`absolute inset-0 bg-gradient-to-t ${category.color} opacity-20 group-hover:opacity-30 transition-opacity`} />

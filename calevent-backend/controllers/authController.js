@@ -1,7 +1,7 @@
-import Customer from '../models/customer.js';
-import Provider from '../models/Provider.js';
-import { generateToken } from '../middleware/auth.js';
-import { sendWelcomeEmail } from '../services/emailService.js';
+import Customer from "../models/customer.js";
+import Provider from "../models/Provider.js";
+import { generateToken } from "../middleware/auth.js";
+import { sendWelcomeEmail } from "../services/emailService.js";
 
 // Customer Registration
 export const registerCustomer = async (req, res) => {
@@ -13,7 +13,7 @@ export const registerCustomer = async (req, res) => {
     if (existingCustomer) {
       return res.status(400).json({
         success: false,
-        message: 'Customer with this email already exists'
+        message: "Customer with this email already exists",
       });
     }
 
@@ -24,7 +24,7 @@ export const registerCustomer = async (req, res) => {
       password,
       phone,
       dateOfBirth,
-      gender
+      gender,
     });
 
     await customer.save();
@@ -33,32 +33,32 @@ export const registerCustomer = async (req, res) => {
     const token = generateToken({
       id: customer._id,
       email: customer.email,
-      role: 'customer'
+      role: "customer",
     });
 
     // Send welcome email
-    await sendWelcomeEmail({ name, email }, 'customer');
+    await sendWelcomeEmail({ name, email }, "customer");
 
     res.status(201).json({
       success: true,
-      message: 'Customer registered successfully',
+      message: "Customer registered successfully",
       data: {
         customer: {
           id: customer._id,
           name: customer.name,
           email: customer.email,
           phone: customer.phone,
-          role: 'customer'
+          role: "customer",
         },
-        token
-      }
+        token,
+      },
     });
   } catch (error) {
-    console.error('Customer registration error:', error);
+    console.error("Customer registration error:", error);
     res.status(500).json({
       success: false,
-      message: 'Registration failed',
-      error: error.message
+      message: "Registration failed",
+      error: error.message,
     });
   }
 };
@@ -69,11 +69,11 @@ export const loginCustomer = async (req, res) => {
     const { email, password } = req.body;
 
     // Find customer and include password
-    const customer = await Customer.findOne({ email }).select('+password');
+    const customer = await Customer.findOne({ email }).select("+password");
     if (!customer) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid email or password'
+        message: "Invalid email or password",
       });
     }
 
@@ -81,7 +81,7 @@ export const loginCustomer = async (req, res) => {
     if (!customer.isActive) {
       return res.status(401).json({
         success: false,
-        message: 'Account is deactivated. Please contact support.'
+        message: "Account is deactivated. Please contact support.",
       });
     }
 
@@ -90,7 +90,7 @@ export const loginCustomer = async (req, res) => {
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid email or password'
+        message: "Invalid email or password",
       });
     }
 
@@ -98,12 +98,12 @@ export const loginCustomer = async (req, res) => {
     const token = generateToken({
       id: customer._id,
       email: customer.email,
-      role: 'customer'
+      role: "customer",
     });
 
     res.json({
       success: true,
-      message: 'Login successful',
+      message: "Login successful",
       data: {
         customer: {
           id: customer._id,
@@ -111,17 +111,17 @@ export const loginCustomer = async (req, res) => {
           email: customer.email,
           phone: customer.phone,
           profileImage: customer.profileImage,
-          role: 'customer'
+          role: "customer",
         },
-        token
-      }
+        token,
+      },
     });
   } catch (error) {
-    console.error('Customer login error:', error);
+    console.error("Customer login error:", error);
     res.status(500).json({
       success: false,
-      message: 'Login failed',
-      error: error.message
+      message: "Login failed",
+      error: error.message,
     });
   }
 };
@@ -129,16 +129,16 @@ export const loginCustomer = async (req, res) => {
 // Provider Registration
 export const registerProvider = async (req, res) => {
   try {
-    const { 
-      name, 
-      email, 
-      password, 
-      phone, 
-      businessName, 
-      businessType = 'individual', 
-      categories, 
+    const {
+      name,
+      email,
+      password,
+      phone,
+      businessName,
+      businessType = "individual",
+      categories,
       description,
-      location 
+      location,
     } = req.body;
 
     // Check if provider already exists
@@ -146,7 +146,7 @@ export const registerProvider = async (req, res) => {
     if (existingProvider) {
       return res.status(400).json({
         success: false,
-        message: 'Provider with this email already exists'
+        message: "Provider with this email already exists",
       });
     }
 
@@ -159,7 +159,7 @@ export const registerProvider = async (req, res) => {
       businessName,
       businessType,
       categories,
-      description
+      description,
     };
 
     // Add location if provided
@@ -171,53 +171,29 @@ export const registerProvider = async (req, res) => {
     const provider = new Provider(providerData);
     await provider.save();
 
-    // Generate token
-    const token = generateToken({
-      id: provider._id,
-      email: provider.email,
-      role: 'provider'
-    });
-
-    // Send welcome email (optional, don't fail registration if email fails)
-    try {
-      await sendWelcomeEmail({ name, email }, 'provider');
-    } catch (emailError) {
-      console.warn('Welcome email failed:', emailError.message);
-    }
-
     res.status(201).json({
       success: true,
-      message: 'Provider registered successfully',
-      data: {
-        provider: {
-          id: provider._id,
-          name: provider.name,
-          email: provider.email,
-          phone: provider.phone,
-          businessName: provider.businessName,
-          categories: provider.categories,
-          role: 'provider'
-        },
-        token
-      }
+      message:
+        "Registration successful! Your account is pending admin verification. You will be able to log in once approved.",
+      // No token returned as provider must be verified by admin first
     });
   } catch (error) {
-    console.error('Provider registration error:', error);
-    
+    console.error("Provider registration error:", error);
+
     // Handle validation errors
-    if (error.name === 'ValidationError') {
-      const errors = Object.values(error.errors).map(e => e.message);
+    if (error.name === "ValidationError") {
+      const errors = Object.values(error.errors).map((e) => e.message);
       return res.status(400).json({
         success: false,
-        message: 'Validation failed',
-        errors
+        message: "Validation failed",
+        errors,
       });
     }
 
     res.status(500).json({
       success: false,
-      message: 'Registration failed',
-      error: error.message
+      message: "Registration failed",
+      error: error.message,
     });
   }
 };
@@ -228,20 +204,33 @@ export const loginProvider = async (req, res) => {
     const { email, password } = req.body;
 
     // Find provider and include password
-    const provider = await Provider.findOne({ email }).select('+password');
+    const provider = await Provider.findOne({ email }).select("+password");
     if (!provider) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid email or password'
+        message: "Invalid email or password",
       });
     }
 
     // Check if provider is active
     if (!provider.isActive) {
-      return res.status(401).json({
-        success: false,
-        message: 'Account is deactivated. Please contact support.'
-      });
+      if (provider.verificationStatus === "pending") {
+        return res.status(401).json({
+          success: false,
+          message:
+            "Your account is pending verification by the admin. Please wait for approval.",
+        });
+      } else if (provider.verificationStatus === "rejected") {
+        return res.status(401).json({
+          success: false,
+          message: `Your account was rejected. Reason: ${provider.rejectionReason || "Unknown"}`,
+        });
+      } else {
+        return res.status(401).json({
+          success: false,
+          message: "Account is deactivated. Please contact support.",
+        });
+      }
     }
 
     // Verify password
@@ -249,7 +238,7 @@ export const loginProvider = async (req, res) => {
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid email or password'
+        message: "Invalid email or password",
       });
     }
 
@@ -257,12 +246,12 @@ export const loginProvider = async (req, res) => {
     const token = generateToken({
       id: provider._id,
       email: provider.email,
-      role: 'provider'
+      role: "provider",
     });
 
     res.json({
       success: true,
-      message: 'Login successful',
+      message: "Login successful",
       data: {
         provider: {
           id: provider._id,
@@ -273,17 +262,17 @@ export const loginProvider = async (req, res) => {
           categories: provider.categories,
           profileImage: provider.profileImage,
           isVerified: provider.isVerified,
-          role: 'provider'
+          role: "provider",
         },
-        token
-      }
+        token,
+      },
     });
   } catch (error) {
-    console.error('Provider login error:', error);
+    console.error("Provider login error:", error);
     res.status(500).json({
       success: false,
-      message: 'Login failed',
-      error: error.message
+      message: "Login failed",
+      error: error.message,
     });
   }
 };
@@ -294,16 +283,24 @@ export const verifyToken = async (req, res) => {
     const { id, role } = req.user;
 
     let user;
-    if (role === 'customer') {
+    if (role === "customer") {
       user = await Customer.findById(id);
-    } else if (role === 'provider') {
+    } else if (role === "provider") {
       user = await Provider.findById(id);
     }
 
     if (!user || !user.isActive) {
+      let msg = "User not found or inactive";
+      if (user && role === "provider") {
+        if (user.verificationStatus === "pending") {
+          msg = "Your account is pending verification by the admin.";
+        } else if (user.verificationStatus === "rejected") {
+          msg = `Your account was rejected. Reason: ${user.rejectionReason || "Unknown"}`;
+        }
+      }
       return res.status(401).json({
         success: false,
-        message: 'User not found or inactive'
+        message: msg,
       });
     }
 
@@ -317,20 +314,20 @@ export const verifyToken = async (req, res) => {
           phone: user.phone,
           profileImage: user.profileImage,
           role,
-          ...(role === 'provider' && {
+          ...(role === "provider" && {
             businessName: user.businessName,
             categories: user.categories,
-            isVerified: user.isVerified
-          })
-        }
-      }
+            isVerified: user.isVerified,
+          }),
+        },
+      },
     });
   } catch (error) {
-    console.error('Token verification error:', error);
+    console.error("Token verification error:", error);
     res.status(500).json({
       success: false,
-      message: 'Token verification failed',
-      error: error.message
+      message: "Token verification failed",
+      error: error.message,
     });
   }
 };

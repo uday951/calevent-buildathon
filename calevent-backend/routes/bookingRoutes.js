@@ -1,33 +1,28 @@
 import express from 'express';
-import {
-  createBooking,
-  getMyBookings,
-  getBookingById,
+import { 
+  createBooking, 
+  getCustomerBookings, 
+  getProviderBookings, 
   updateBookingStatus,
-  cancelBooking,
-  addBookingRating
+  getBookingById 
 } from '../controllers/bookingController.js';
-import { verifyToken, customerAuth, providerAuth } from '../middleware/auth.js';
-import { validateBookingCreation } from '../middleware/validation.js';
+import { optionalAuth } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Create booking (Customer only)
-router.post('/', customerAuth, validateBookingCreation, createBooking);
+// Create new booking
+router.post('/create', optionalAuth, createBooking);
 
-// Get user's bookings (Both customer and provider)
-router.get('/my-bookings', verifyToken, getMyBookings);
+// Get customer bookings
+router.get('/customer', optionalAuth, getCustomerBookings);
 
-// Get booking by ID (Both customer and provider)
-router.get('/:id', verifyToken, getBookingById);
+// Get provider bookings  
+router.get('/provider', optionalAuth, getProviderBookings);
 
-// Update booking status (Provider only)
-router.patch('/:id/status', providerAuth, updateBookingStatus);
+// Get booking by ID
+router.get('/:bookingId', optionalAuth, getBookingById);
 
-// Cancel booking (Both customer and provider)
-router.patch('/:id/cancel', verifyToken, cancelBooking);
-
-// Add rating (Both customer and provider)
-router.post('/:id/rating', verifyToken, addBookingRating);
+// Update booking status (provider only)
+router.put('/:bookingId/status', optionalAuth, updateBookingStatus);
 
 export default router;
