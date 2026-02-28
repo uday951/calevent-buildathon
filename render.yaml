@@ -1,0 +1,70 @@
+services:
+  # ------------------------------------
+  # 1. MongoDB Database (Optional - usually external like Atlas)
+  # By default, use external MongoDB Atlas for production!
+  # ------------------------------------
+
+  # ------------------------------------
+  # 2. CALEVENT Backend (Web Service)
+  # ------------------------------------
+  - type: web
+    name: calevent-backend
+    env: node
+    region: oregon
+    plan: free # Change to starter/pro for production
+    rootDir: calevent-backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: MONGO_URI
+        sync: false # User must provide this in the Render Dashboard
+      - key: JWT_SECRET
+        generateValue: true
+      - key: VITE_API_BASE_URL
+        value: "" # Placeholder, backend doesn't explicitly need this but here if needed
+      - key: FRONTEND_URL
+        value: "none" # You will replace this after frontend is deployed
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: HF_TOKEN
+        sync: false
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASS
+        sync: false
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+
+  # ------------------------------------
+  # 3. CALEVENT Frontend (Static Site)
+  # ------------------------------------
+  - type: web
+    name: calevent-frontend
+    env: static
+    region: oregon
+    plan: free
+    rootDir: .
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: VITE_API_BASE_URL
+        fromService:
+          type: web
+          name: calevent-backend
+          property: host
+          # We concatenate this value with "/api" manually or Render will pass the bare host.
+          # Render syntax requires modifying it. It's safer to just let the user set it manually if issues arise.
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
