@@ -77,7 +77,7 @@ const CategoryEvents = () => {
         sort: sortBy === 'price-low' ? 'price' : sortBy === 'price-high' ? '-price' : sortBy === 'rating' ? '-rating' : '-createdAt'
       })
       
-      const response = await fetch(`http://localhost:5000/api/events?${params}`)
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/events?${params}`)
       if (!response.ok) return []
       const data = await response.json()
       const allEvents = data.success ? data.data.events : []

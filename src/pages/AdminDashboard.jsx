@@ -25,10 +25,10 @@ const AdminDashboard = () => {
     try {
       const token = localStorage.getItem('adminToken');
       const [statsRes, providersRes] = await Promise.all([
-        fetch('http://localhost:5000/api/admin/dashboard', {
+        fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/dashboard`, {
           headers: { 'Authorization': `Bearer ${token}` }
         }),
-        fetch('http://localhost:5000/api/admin/providers/pending', {
+        fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/providers/pending`, {
           headers: { 'Authorization': `Bearer ${token}` }
         })
       ]);
@@ -55,7 +55,7 @@ const AdminDashboard = () => {
   const handleProviderAction = async (providerId, action, reason = '') => {
     try {
       const token = localStorage.getItem('adminToken');
-      const response = await fetch(`http://localhost:5000/api/admin/providers/${providerId}/verify`, {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/providers/${providerId}/verify`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

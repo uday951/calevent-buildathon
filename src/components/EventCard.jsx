@@ -30,7 +30,7 @@ const EventCard = ({ event, className = '' }) => {
                 event.eventImage?.startsWith('http') 
                   ? event.eventImage 
                   : event.eventImage 
-                    ? `http://localhost:5000/${event.eventImage}` 
+                    ? `${import.meta.env.VITE_BACKEND_URL}/${event.eventImage}` 
                     : '/src/public/wedding.jpg'
               }
               alt={event.title}

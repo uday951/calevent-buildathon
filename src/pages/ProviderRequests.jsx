@@ -21,7 +21,7 @@ const ProviderRequests = () => {
   const loadRequests = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/ai/provider-requests', {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/ai/provider-requests`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -64,7 +64,7 @@ const ProviderRequests = () => {
 
   const respondToRequest = async (requestId, status, message, cost) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/ai/respond-request/${requestId}`, {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/ai/respond-request/${requestId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

@@ -92,7 +92,7 @@ const AIDashboard = () => {
 
   const loadRequests = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/ai/customer-requests', {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/ai/customer-requests`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -112,7 +112,7 @@ const AIDashboard = () => {
     setLoading(true);
     
     try {
-      const response = await fetch('http://localhost:5000/api/ai/assistant', {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/ai/assistant`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(assistantForm)
@@ -133,7 +133,7 @@ const AIDashboard = () => {
     setLoading(true);
     
     try {
-      const response = await fetch('http://localhost:5000/api/ai/generate-content', {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/ai/generate-content`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(contentForm)
@@ -154,7 +154,7 @@ const AIDashboard = () => {
     setLoading(true);
     
     try {
-      const response = await fetch('http://localhost:5000/api/ai/generate-image', {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/ai/generate-image`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(imageForm)
@@ -174,7 +174,7 @@ const AIDashboard = () => {
   const handleFindProviders = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/ai/find-providers', {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/ai/find-providers`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -216,7 +216,7 @@ const AIDashboard = () => {
     console.log('Sending request to provider:', providerId);
     
     try {
-      const response = await fetch('http://localhost:5000/api/ai/send-request', {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/ai/send-request`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -277,7 +277,7 @@ const AIDashboard = () => {
     setLoading(true);
     
     try {
-      const response = await fetch(`http://localhost:5000/api/ai/reviews/${reviewForm.providerId}?detailed=${reviewForm.detailed}`);
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/ai/reviews/${reviewForm.providerId}?detailed=${reviewForm.detailed}`);
       const data = await response.json();
       setResults({ ...results, reviews: data });
     } catch (error) {
@@ -303,7 +303,7 @@ const AIDashboard = () => {
     formData.append('detailed', analysisForm.detailed);
     
     try {
-      const response = await fetch('http://localhost:5000/api/ai/analyze-image', {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/ai/analyze-image`, {
         method: 'POST',
         body: formData
       });

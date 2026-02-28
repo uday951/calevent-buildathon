@@ -52,7 +52,7 @@ const CustomerBookingDashboard = () => {
   const loadAIRequests = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:5000/api/ai/customer-requests', {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/ai/customer-requests`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -103,7 +103,7 @@ const CustomerBookingDashboard = () => {
         const token = localStorage.getItem('token')
         console.log('Fetching bookings with token:', token ? 'Present' : 'Missing')
         
-        const response = await fetch(`http://localhost:5000/api/bookings/customer?${params}`, {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/bookings/customer?${params}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }

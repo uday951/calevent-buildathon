@@ -10,7 +10,7 @@ const AITestDashboard = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [selectedFiles, setSelectedFiles] = useState([]);
 
-  const API_BASE = 'http://localhost:5000/api';
+  const API_BASE = `${import.meta.env.VITE_BACKEND_URL}/api`;
 
   // Test Review Summary
   const testReviewSummary = async (providerId, detailed = false) => {

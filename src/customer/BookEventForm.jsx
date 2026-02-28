@@ -216,7 +216,7 @@ const BookEventForm = () => {
       console.log('Creating booking with token:', token ? 'Present' : 'Missing')
       console.log('Booking payload:', bookingPayload)
       
-      const response = await fetch('http://localhost:5000/api/bookings/create', {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/bookings/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

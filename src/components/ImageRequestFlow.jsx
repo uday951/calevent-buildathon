@@ -18,7 +18,7 @@ const ImageRequestFlow = () => {
     message: ''
   });
 
-  const API_BASE = 'http://localhost:5000/api';
+  const API_BASE = `${import.meta.env.VITE_BACKEND_URL}/api`;
 
   // Step 1: Generate Image with Providers
   const generateImageWithProviders = async () => {

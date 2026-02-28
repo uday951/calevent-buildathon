@@ -34,7 +34,7 @@ const ProviderBookingDashboard = () => {
           params.append('status', activeTab)
         }
         
-        const response = await fetch(`http://localhost:5000/api/bookings/provider?${params}`, {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/bookings/provider?${params}`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('providerToken') || localStorage.getItem('token')}`
           }
@@ -117,7 +117,7 @@ const ProviderBookingDashboard = () => {
 
   const handleStatusUpdate = async (bookingId, newStatus) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/bookings/${bookingId}/status`, {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/bookings/${bookingId}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

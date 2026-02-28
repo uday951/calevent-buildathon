@@ -6,7 +6,7 @@ const ProviderRequestDashboard = () => {
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState('all');
 
-  const API_BASE = 'http://localhost:5000/api';
+  const API_BASE = `${import.meta.env.VITE_BACKEND_URL}/api`;
 
   useEffect(() => {
     fetchRequests();

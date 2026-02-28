@@ -137,7 +137,7 @@ const EventDetails = () => {
                     event?.eventImage?.startsWith('http') 
                       ? event.eventImage 
                       : event?.eventImage 
-                        ? `http://localhost:5000/${event.eventImage}` 
+                        ? `${import.meta.env.VITE_BACKEND_URL}/${event.eventImage}` 
                         : '/src/public/wedding.jpg'
                   }
                   alt={event?.title}
@@ -167,7 +167,7 @@ const EventDetails = () => {
                     src={
                       event.eventImage?.startsWith('http') 
                         ? event.eventImage 
-                        : `http://localhost:5000/${event.eventImage}`
+                        : `${import.meta.env.VITE_BACKEND_URL}/${event.eventImage}`
                     }
                     alt={event.title}
                     className="w-full h-full object-cover hover:scale-105 transition-transform"

@@ -11,7 +11,10 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/api': 'http://localhost:5000'
+      '/api': {
+        target: 'https://calevent-backend-xxzd.onrender.com',
+        changeOrigin: true
+      }
     },
     watch: {
       ignored: ['**/node_modules/**', 'D:/**/!(main_projects/calevent)/**']

@@ -153,7 +153,7 @@ const Chatbot = () => {
     setIsTyping(true)
 
     try {
-      const response = await fetch('http://localhost:5000/api/chatbot/analyze-image', {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/chatbot/analyze-image`, {
         method: 'POST',
         body: formData
       })

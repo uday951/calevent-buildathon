@@ -115,7 +115,7 @@ const CategoryPage = () => {
   const { data: featuredEvents = [] } = useQuery({
     queryKey: ['featured-events', category],
     queryFn: async () => {
-      const response = await fetch(`http://localhost:5000/api/events?category=${category}&limit=6&sort=rating`)
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/events?category=${category}&limit=6&sort=rating`)
       if (!response.ok) return []
       const data = await response.json()
       return data.success ? data.data.events : []
@@ -126,7 +126,7 @@ const CategoryPage = () => {
   const { data: topProviders = [] } = useQuery({
     queryKey: ['top-providers', category],
     queryFn: async () => {
-      const response = await fetch(`http://localhost:5000/api/provider?category=${category}&limit=4&verified=true`)
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/provider?category=${category}&limit=4&verified=true`)
       if (!response.ok) return []
       const data = await response.json()
       return data.success ? data.data.providers : []
