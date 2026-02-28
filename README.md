@@ -1,7 +1,7 @@
 # CALEVENT - Next-Gen AI-Powered Event Booking Platform 🚀🤖
 
 <div align="center">
-  <img src="https://via.placeholder.com/1200x400.png?text=CALEVENT+-+The+Future+of+Event+Management" alt="CALEVENT Banner">
+  <img src="public/caleventbanner-github.png" alt="CALEVENT Banner">
   
   <p><strong>Redefining the event industry with Multi-Tier AI, seamless UX, and hyper-premium architecture.</strong></p>
   
