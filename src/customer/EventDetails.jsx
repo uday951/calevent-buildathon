@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { 
   MapPin, Calendar, Users, Star, Heart, Share2, 
-  Clock, Phone, Mail, CheckCircle, ArrowLeft,
-  ImageIcon, Play
+  Clock, CheckCircle, ArrowLeft,
+  ImageIcon
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { formatPrice, formatDate, getImageUrl } from '@/lib/utils'
@@ -16,9 +16,8 @@ import { eventsAPI } from '@/services/api'
 
 const EventDetails = () => {
   const { eventId } = useParams()
-  const [selectedImage, setSelectedImage] = useState(0)
+  const navigate = useNavigate()
   const [isFavorite, setIsFavorite] = useState(false)
-  const [showAllImages, setShowAllImages] = useState(false)
 
   // Fetch real event data
   const { data: eventData, isLoading, error } = useQuery({
@@ -271,47 +270,30 @@ const EventDetails = () => {
               </CardContent>
             </Card>
 
-            {/* Provider Info */}
+            {/* Provider Info — name + rating only, no contact details */}
             <Card>
               <CardContent className="p-6">
-                <h2 className="text-xl font-semibold mb-4">Event Provider</h2>
-                <div className="flex items-start space-x-4">
-                  <img
-                    src={event.providerId?.profileImage || '/src/public/Ryan-360x290.jpg'}
-                    alt={event.providerId?.name || 'Provider'}
-                    className="w-16 h-16 rounded-full object-cover"
-                  />
+                <h2 className="text-xl font-semibold mb-4">About the Provider</h2>
+                <div className="flex items-center space-x-4">
+                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#7c3aed] to-purple-400 flex items-center justify-center text-white text-xl font-bold">
+                    {(event.providerId?.businessName || event.providerId?.name || 'P').charAt(0)}
+                  </div>
                   <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <h3 className="font-semibold text-lg">{event.providerId?.businessName || event.providerId?.name || 'Provider'}</h3>
+                    <div className="flex items-center space-x-2 mb-1">
+                      <h3 className="font-semibold text-lg">{event.providerId?.businessName || event.providerId?.name || 'Verified Provider'}</h3>
                       {event.providerId?.isVerified && (
                         <CheckCircle className="w-5 h-5 text-blue-500" />
                       )}
                     </div>
-                    <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
+                    <div className="flex items-center space-x-3 text-sm text-gray-600">
                       <div className="flex items-center space-x-1">
                         <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                        <span>{event.providerId?.rating || '0.0'} ({event.providerId?.totalReviews || 0} reviews)</span>
+                        <span>{event.providerId?.rating || '0.0'}</span>
                       </div>
-                      <span>Provider</span>
-                      <span>{event.providerId?.totalBookings || 0} bookings completed</span>
+                      <span>•</span>
+                      <span>{event.providerId?.totalBookings || 0} events completed</span>
                     </div>
-                    <p className="text-gray-600 mb-4">{event.providerId?.description || 'No description available'}</p>
-                    <div className="flex items-center space-x-4">
-                      <Link to={`/provider/profile/${event.providerId?._id}`}>
-                        <Button variant="outline" size="sm">
-                          View Profile
-                        </Button>
-                      </Link>
-                      <div className="flex items-center space-x-2 text-sm text-gray-600">
-                        <Phone className="w-4 h-4" />
-                        <span>{event.providerId?.phone || 'Not available'}</span>
-                      </div>
-                      <div className="flex items-center space-x-2 text-sm text-gray-600">
-                        <Mail className="w-4 h-4" />
-                        <span>{event.providerId?.email || 'Not available'}</span>
-                      </div>
-                    </div>
+                    <p className="text-sm text-gray-500 mt-2 italic">Provider details shared after booking confirmation</p>
                   </div>
                 </div>
               </CardContent>
@@ -355,71 +337,76 @@ const EventDetails = () => {
             </Card>
           </div>
 
-          {/* Booking Sidebar */}
+          {/* Request Quote Sidebar — replaces old booking sidebar */}
           <div className="space-y-6">
             <Card className="sticky top-24">
               <CardContent className="p-6">
-                <div className="mb-6">
-                  <div className="flex items-baseline space-x-2 mb-2">
+                {/* Price display */}
+                <div className="mb-5">
+                  <div className="flex items-baseline space-x-2 mb-1">
                     <span className="text-3xl font-bold text-gray-900">
                       {formatPrice(event.price)}
                     </span>
                     {event.originalPrice && (
-                      <span className="text-lg text-gray-500 line-through">
+                      <span className="text-lg text-gray-400 line-through">
                         {formatPrice(event.originalPrice)}
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-gray-600">Starting price for {event.minCapacity} guests</p>
+                  <p className="text-sm text-gray-500">Starting price · Final quote after review</p>
                 </div>
 
-                <div className="space-y-4 mb-6">
+                {/* Event quick info */}
+                <div className="space-y-3 mb-5 pb-5 border-b border-gray-100">
+                  {event.duration && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-500">Duration</span>
+                      <span className="font-medium">{event.duration}</span>
+                    </div>
+                  )}
+                  {(event.minCapacity || event.maxCapacity) && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-500">Capacity</span>
+                      <span className="font-medium">{event.minCapacity}–{event.maxCapacity} guests</span>
+                    </div>
+                  )}
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Duration:</span>
-                    <span className="font-medium">{event.duration}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Capacity:</span>
-                    <span className="font-medium">{event.minCapacity}-{event.maxCapacity} guests</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Category:</span>
-                    <span className="font-medium">{event.category}</span>
+                    <span className="text-gray-500">Category</span>
+                    <span className="font-medium capitalize">{event.category}</span>
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  <Link to={`/book-event/${event._id}`}>
-                    <Button className="w-full">
-                      Book Now
-                    </Button>
-                  </Link>
-                  <Button variant="outline" className="w-full">
-                    Request Quote
+                {/* How it works */}
+                <div className="mb-5 space-y-2">
+                  {[
+                    { step: '1', text: 'Submit your event request' },
+                    { step: '2', text: 'CALEVENT team reviews & contacts you' },
+                    { step: '3', text: 'Get a custom quote' },
+                    { step: '4', text: 'Confirm & pay — event is set!' },
+                  ].map(({ step, text }) => (
+                    <div key={step} className="flex items-center space-x-3 text-sm">
+                      <div className="w-6 h-6 rounded-full bg-purple-100 text-[#7c3aed] flex items-center justify-center font-bold text-xs shrink-0">{step}</div>
+                      <span className="text-gray-600">{text}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Primary CTA */}
+                <Link to={`/plan-my-event?eventType=${encodeURIComponent(event.category || '')}&ref=${event._id}`}>
+                  <Button className="w-full bg-[#7c3aed] hover:bg-purple-700 text-white font-bold py-3 text-base mb-3">
+                    🎯 Request This Event
                   </Button>
-                  <Button variant="ghost" className="w-full">
-                    Contact Provider
+                </Link>
+                <Link to="/plan-my-event">
+                  <Button variant="outline" className="w-full font-semibold">
+                    Plan a Custom Event
                   </Button>
-                </div>
+                </Link>
 
-                <div className="mt-6 pt-6 border-t border-gray-200">
-                  <h4 className="font-semibold mb-3">Available Dates</h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    {event.availability && Array.isArray(event.availability) ? 
-                      event.availability.slice(0, 4).map((date, index) => (
-                        <div
-                          key={index}
-                          className="p-2 text-center text-sm bg-green-50 text-green-700 rounded border border-green-200"
-                        >
-                          {formatDate(new Date(date))}
-                        </div>
-                      )) : (
-                        <div className="col-span-2 text-center text-sm text-gray-500">
-                          No availability data
-                        </div>
-                      )
-                    }
-                  </div>
+                {/* Trust badge */}
+                <div className="mt-4 flex items-center justify-center space-x-2 text-xs text-gray-400">
+                  <CheckCircle className="w-4 h-4 text-green-500" />
+                  <span>Managed by CALEVENT · No direct provider contact needed</span>
                 </div>
               </CardContent>
             </Card>

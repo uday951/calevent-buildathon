@@ -40,6 +40,10 @@ const AIDashboard = lazy(() => import('./pages/AIDashboardPage'))
 const ProviderRequests = lazy(() => import('@/pages/ProviderRequests'))
 const AdminLogin = lazy(() => import('@/pages/AdminLogin'))
 const AdminDashboard = lazy(() => import('@/pages/AdminDashboard'))
+const PlanMyEvent = lazy(() => import('@/customer/PlanMyEvent'))
+const MyRequests = lazy(() => import('@/customer/MyRequests'))
+const AdminEventRequests = lazy(() => import('@/pages/AdminEventRequests'))
+const ProviderAssignments = lazy(() => import('@/provider/ProviderAssignments'))
 
 // Loading component
 const LoadingSpinner = () => (
@@ -106,6 +110,11 @@ function App() {
                 <AdminDashboard />
               </AdminRoute>
             } />
+            <Route path="/admin/event-requests" element={
+              <AdminRoute>
+                <AdminEventRequests />
+              </AdminRoute>
+            } />
             
             {/* Authentication Routes */}
             <Route path="/login/customer" element={<CustomerLogin />} />
@@ -114,6 +123,12 @@ function App() {
             <Route path="/signup/provider" element={<ProviderSignup />} />
             
             {/* Customer Protected Routes */}
+            <Route path="/plan-my-event" element={<PlanMyEvent />} />
+            <Route path="/my-requests" element={
+              <ProtectedRoute requiredRole="customer">
+                <MyRequests />
+              </ProtectedRoute>
+            } />
             <Route path="/bookings" element={
               <ProtectedRoute requiredRole="customer">
                 <CustomerBookingDashboard />
@@ -160,6 +175,7 @@ function App() {
               <Route path="analytics" element={<ProviderAnalytics />} />
               <Route path="settings" element={<ProviderSettings />} />
               <Route path="requests" element={<ProviderRequests />} />
+              <Route path="assignments" element={<ProviderAssignments />} />
             </Route>
             
             {/* 404 Route */}

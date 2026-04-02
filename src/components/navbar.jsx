@@ -29,13 +29,13 @@ const Navbar = () => {
   }
 
   return (
-    <nav className="bg-white shadow-lg sticky top-0 z-40">
+    <nav className="bg-white/80 backdrop-blur-xl border-b border-gray-100 shadow-sm sticky top-0 z-50 transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 flex items-center space-x-2">
               <Calendar className="w-8 h-8 text-[#333f63]" />
-              <div className="text-2xl font-bold bg-gradient-to-r from-black to-[#333f63] bg-clip-text text-transparent">
+              <div className="text-2xl font-black tracking-tight bg-gradient-to-r from-gray-900 via-primary to-purple-800 bg-clip-text text-transparent">
                 CALEVENT
               </div>
             </Link>
@@ -47,10 +47,10 @@ const Navbar = () => {
               <Link
                 key={item.name}
                 to={item.href}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
                   isActive(item.href)
-                    ? 'text-slate-800 bg-slate-100'
-                    : 'text-slate-700 hover:text-slate-800 hover:bg-slate-50'
+                    ? 'text-primary bg-primary/10 scale-105'
+                    : 'text-gray-600 hover:text-primary hover:bg-gray-50'
                 }`}
               >
                 {item.name}

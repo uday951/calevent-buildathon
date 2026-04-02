@@ -1,32 +1,39 @@
 import React from 'react';
+import { cn } from '@/lib/utils';
 
-export const Card = ({ children, className = '' }) => {
+export const Card = ({ children, className = '', ...props }) => {
   return (
-    <div className={`bg-white rounded-lg border border-gray-200 shadow-sm ${className}`}>
+    <div 
+      className={cn(
+        "bg-white rounded-2xl border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)] transition-all duration-300 overflow-hidden", 
+        className
+      )}
+      {...props}
+    >
       {children}
     </div>
   );
 };
 
-export const CardHeader = ({ children, className = '' }) => {
+export const CardHeader = ({ children, className = '', ...props }) => {
   return (
-    <div className={`px-6 py-4 border-b border-gray-200 ${className}`}>
+    <div className={cn("px-6 py-5 border-b border-gray-50 bg-gray-50/50", className)} {...props}>
       {children}
     </div>
   );
 };
 
-export const CardTitle = ({ children, className = '' }) => {
+export const CardTitle = ({ children, className = '', ...props }) => {
   return (
-    <h3 className={`text-lg font-semibold text-gray-900 ${className}`}>
+    <h3 className={cn("text-lg font-semibold text-gray-900 tracking-tight", className)} {...props}>
       {children}
     </h3>
   );
 };
 
-export const CardContent = ({ children, className = '' }) => {
+export const CardContent = ({ children, className = '', ...props }) => {
   return (
-    <div className={`px-6 py-4 ${className}`}>
+    <div className={cn("p-6", className)} {...props}>
       {children}
     </div>
   );

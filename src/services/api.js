@@ -202,4 +202,35 @@ export const customerAPI = {
 export const getComboEvents = (params) => comboAPI.getAllCombos(params);
 export const createComboEvent = (formData) => comboAPI.createCombo(formData);
 
+// ── Event Requests API (Managed Platform Core) ───────────────────────────────
+export const eventRequestsAPI = {
+  // Customer
+  create:       (data)        => api.post('/event-requests', data),
+  getMy:        (params)      => api.get('/event-requests/my', { params }),
+  getMyById:    (id)          => api.get(`/event-requests/my/${id}`),
+  approveQuote: (id)          => api.patch(`/event-requests/my/${id}/approve-quote`),
+  cancel:       (id, data)    => api.patch(`/event-requests/my/${id}/cancel`, data),
+
+  // Admin
+  adminGetAll:           (params)    => api.get('/event-requests/admin/all', { params }),
+  adminGetById:          (id)        => api.get(`/event-requests/admin/${id}`),
+  adminGetStats:         ()          => api.get('/event-requests/admin/stats'),
+  adminUpdateStatus:     (id, data)  => api.patch(`/event-requests/admin/${id}/status`, data),
+  adminAssignProvider:   (id, data)  => api.post(`/event-requests/admin/${id}/assign-provider`, data),
+  adminRemoveAssignment: (id, asgId) => api.delete(`/event-requests/admin/${id}/assignments/${asgId}`),
+  adminCreateQuotation:  (id, data)  => api.post(`/event-requests/admin/${id}/quotation`, data),
+  adminSearchProviders:  (params)    => api.get('/event-requests/admin/providers/search', { params }),
+
+  // Provider
+  providerGetAssignments: (params)   => api.get('/event-requests/provider/assignments', { params }),
+  providerRespond:        (id, data) => api.patch(`/event-requests/provider/assignments/${id}/respond`, data),
+};
+
+// Helper — resolves image URLs from backend uploads safely
+export const getImageUrl = (path) => {
+  if (!path) return null;
+  if (path.startsWith('http')) return path;
+  return `${import.meta.env.VITE_BACKEND_URL}/${path}`;
+};
+
 export default api;

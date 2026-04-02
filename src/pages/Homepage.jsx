@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Search, MapPin, Calendar, Users, Star, ArrowRight, Phone, Mail, MapPin as LocationIcon } from 'lucide-react'
+import { Search, Calendar, Star, Phone, Mail, MapPin as LocationIcon } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import EventCard from '@/components/EventCard'
@@ -75,12 +75,12 @@ const Homepage = () => {
   ]
 
   const categories = [
-    { name: 'Weddings', icon: '💒', count: '150+' },
-    { name: 'Corporate', icon: '🏢', count: '80+' },
-    { name: 'Birthday', icon: '🎂', count: '200+' },
-    { name: 'Anniversary', icon: '💕', count: '90+' },
-    { name: 'Conferences', icon: '🎤', count: '60+' },
-    { name: 'Parties', icon: '🎉', count: '300+' }
+    { name: 'Weddings', icon: '💒' },
+    { name: 'Corporate', icon: '🏢' },
+    { name: 'Birthday', icon: '🎂' },
+    { name: 'Anniversary', icon: '💕' },
+    { name: 'Conferences', icon: '🎤' },
+    { name: 'Parties', icon: '🎉' }
   ]
 
   const popularSearches = [
@@ -211,36 +211,7 @@ const Homepage = () => {
     }
   }
 
-  const testimonials = [
-    {
-      name: 'Sarah Johnson',
-      role: 'Bride',
-      content: 'CALEVENT made our wedding planning so easy! Found the perfect venue and vendors all in one place.',
-      rating: 5,
-      image: '/Ryan-360x290.jpg'
-    },
-    {
-      name: 'Michael Chen',
-      role: 'Corporate Manager',
-      content: 'Excellent platform for corporate events. Professional service and great vendor network.',
-      rating: 5,
-      image: '/Ryan-360x290.jpg'
-    },
-    {
-      name: 'Emily Davis',
-      role: 'Event Organizer',
-      content: 'The booking process is seamless and the customer support is outstanding. Highly recommended!',
-      rating: 5,
-      image: '/Ryan-360x290.jpg'
-    }
-  ]
 
-  const stats = [
-    { label: 'Events Hosted', value: '10,000+', icon: Calendar },
-    { label: 'Happy Customers', value: '25,000+', icon: Users },
-    { label: 'Verified Providers', value: '500+', icon: Star },
-    { label: 'Cities Covered', value: '50+', icon: MapPin }
-  ]
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -323,7 +294,8 @@ const Homepage = () => {
   }
 
   const handleSearchBlur = () => {
-    setTimeout(() => setShowSuggestions(false), 200)
+    // Use onMouseDown instead of onClick for suggestions to naturally prevent premature blurring
+    setShowSuggestions(false)
   }
 
   return (
@@ -353,10 +325,10 @@ const Homepage = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-5xl md:text-7xl font-bold mb-6"
+            className="text-6xl md:text-8xl font-black mb-6 tracking-tight leading-[1.1]"
           >
             Create Unforgettable
-            <span className="block bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+            <span className="block bg-gradient-to-r from-white via-indigo-200 to-purple-300 bg-clip-text text-transparent">
               Moments
             </span>
           </motion.h1>
@@ -367,7 +339,7 @@ const Homepage = () => {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-xl md:text-2xl mb-8 text-gray-200"
           >
-            Discover and book the perfect events with trusted providers
+            Tell us your dream event — we handle everything from planning to execution
           </motion.p>
 
           {/* Search Bar */}
@@ -375,11 +347,11 @@ const Homepage = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="max-w-2xl mx-auto mb-8"
+            className="max-w-3xl mx-auto mb-10 w-full px-4"
           >
-            <div className="flex flex-col md:flex-row gap-4 bg-white/10 backdrop-blur-md p-4 rounded-2xl">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
+            <div className="flex flex-col md:flex-row gap-3 bg-white/20 backdrop-blur-2xl p-3 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/20 relative z-20">
+              <div className="flex-1 relative flex items-center">
+                <Search className="absolute left-5 text-gray-400 w-6 h-6 z-10 pointer-events-none" />
                 <Input
                   placeholder="Search events, venues, or services..."
                   value={searchQuery}
@@ -387,64 +359,79 @@ const Homepage = () => {
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch(e)}
                   onFocus={handleSearchFocus}
                   onBlur={handleSearchBlur}
-                  className="pl-10 bg-white border-0 h-12 text-gray-900 placeholder-gray-500"
+                  className="pl-14 bg-white/95 backdrop-blur-xl border border-white/50 h-16 text-lg rounded-xl text-gray-900 placeholder-gray-500 shadow-inner w-full focus:ring-4 focus:ring-white/20 transition-all duration-300"
                 />
                 
-                {/* Search Suggestions */}
+                {/* Search Suggestions Dropdown */}
                 {showSuggestions && (
-                  <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mt-1 z-50 max-h-60 overflow-y-auto">
-                    {suggestions.length > 0 ? (
-                      suggestions.map((suggestion, index) => {
-                        const isEvent = eventSuggestions.includes(suggestion)
-                        return (
-                          <button
-                            key={index}
-                            onClick={() => handleSuggestionClick(suggestion)}
-                            className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 flex items-center space-x-3 text-gray-700"
-                          >
-                            {isEvent ? (
-                              <Calendar className="w-4 h-4 text-blue-500" />
-                            ) : (
-                              <Search className="w-4 h-4 text-gray-400" />
-                            )}
-                            <span>{suggestion}</span>
-                            {isEvent && (
-                              <span className="ml-auto text-xs text-blue-500 bg-blue-50 px-2 py-1 rounded">
-                                Event
-                              </span>
-                            )}
-                          </button>
-                        )
-                      })
-                    ) : searchQuery.length > 1 ? (
-                      <div className="px-4 py-3 text-gray-500 text-center">
-                        No results found for "{searchQuery}"
-                      </div>
-                    ) : null}
+                  <div className="absolute top-[calc(100%+0.5rem)] left-0 right-0 bg-white/95 backdrop-blur-2xl border border-gray-100 rounded-2xl shadow-2xl z-50 max-h-80 overflow-y-auto transform origin-top transition-all duration-200">
+                    <div className="py-2">
+                      {suggestions.length > 0 ? (
+                        suggestions.map((suggestion, index) => {
+                          const isEvent = eventSuggestions.includes(suggestion)
+                          return (
+                            <button
+                              key={index}
+                              onMouseDown={(e) => {
+                                e.preventDefault() // Prevents input from losing focus immediately
+                                handleSuggestionClick(suggestion)
+                              }}
+                              className="w-full text-left px-5 py-4 hover:bg-gray-50/80 transition-colors flex items-center justify-between group border-b border-gray-50 last:border-b-0"
+                            >
+                              <div className="flex items-center space-x-4">
+                                <div className={`p-2 rounded-xl transition-colors ${isEvent ? 'bg-indigo-50 group-hover:bg-indigo-100 text-indigo-600' : 'bg-gray-50 group-hover:bg-gray-200 text-gray-500'}`}>
+                                  {isEvent ? <Calendar className="w-5 h-5" /> : <Search className="w-5 h-5" />}
+                                </div>
+                                <span className={`text-base font-medium transition-colors ${isEvent ? 'text-gray-900' : 'text-gray-700'}`}>
+                                  {suggestion}
+                                </span>
+                              </div>
+                              {isEvent && (
+                                <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100/50">
+                                  Event
+                                </span>
+                              )}
+                            </button>
+                          )
+                        })
+                      ) : searchQuery.length > 1 ? (
+                        <div className="px-5 py-8 text-center text-gray-500">
+                          <Search className="w-8 h-8 text-gray-300 mx-auto mb-3" />
+                          <p className="text-[15px]">No results found for <span className="font-medium text-gray-900">"{searchQuery}"</span></p>
+                        </div>
+                      ) : null}
+                    </div>
                   </div>
                 )}
               </div>
-              <Button size="lg" className="h-12 px-8" onClick={handleSearch}>
-                Search Events
+              <Button size="lg" className="h-16 px-10 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all font-semibold" onClick={handleSearch}>
+                Search
               </Button>
             </div>
           </motion.div>
 
-          {/* Quick Stats */}
+          {/* Plan My Event CTA */}
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6 }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto"
+            className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <stat.icon className="w-8 h-8 mx-auto mb-2 text-[#333f63]" />
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <div className="text-sm text-gray-300">{stat.label}</div>
-              </div>
-            ))}
+            <Link to="/plan-my-event">
+              <button className="flex items-center space-x-3 bg-[#7c3aed] hover:bg-purple-700 text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-2xl hover:shadow-purple-500/30 transition-all duration-300 group">
+                <span className="text-2xl group-hover:scale-110 transition-transform">🎯</span>
+                <span>Plan My Event</span>
+              </button>
+            </Link>
+            <Link to="/my-requests">
+              <button className="flex items-center space-x-2 bg-white/15 hover:bg-white/25 backdrop-blur-sm text-white px-6 py-4 rounded-2xl font-semibold text-base border border-white/30 transition-all duration-300">
+                <span>📋</span>
+                <span>Track My Requests</span>
+              </button>
+            </Link>
           </motion.div>
+
+
         </div>
 
         {/* Slide Indicators */}
@@ -471,7 +458,7 @@ const Homepage = () => {
         
         <div className="max-w-7xl mx-auto px-4 relative">
           <div className="text-center mb-16">
-            <h2 className="categories-title text-4xl font-bold text-slate-900 mb-4 opacity-0">
+            <h2 className="categories-title text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight mb-4 opacity-0">
               Popular Event Categories
             </h2>
             <p className="categories-subtitle text-xl text-slate-600 max-w-2xl mx-auto opacity-0">
@@ -495,7 +482,6 @@ const Homepage = () => {
                     
                     <div className="category-icon text-5xl mb-4 relative z-10">{category.icon}</div>
                     <h3 className="font-semibold text-lg mb-1 relative z-10">{category.name}</h3>
-                    <p className="text-sm text-slate-600 relative z-10">{category.count} events</p>
                     
                     {/* Hover glow effect */}
                     <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -512,10 +498,10 @@ const Homepage = () => {
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-slate-900 mb-4">
-              Top-Rated Providers
+              Our Verified Provider Network
             </h2>
             <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-              Work with the best event professionals in the industry
+              CALEVENT works with top-rated professionals — we assign the best match for your event
             </p>
           </div>
 
@@ -579,65 +565,23 @@ const Homepage = () => {
           </div>
 
           <div className="text-center mt-12">
-            <Link to="/providers">
-              <Button variant="outline" size="lg">
-                View All Providers
-                <ArrowRight className="w-4 h-4 ml-2" />
+            <Link to="/plan-my-event">
+              <Button size="lg" className="bg-[#7c3aed] hover:bg-purple-700 text-white font-bold px-10">
+                🎯 Plan My Event
               </Button>
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              What Our Customers Say
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Real stories from satisfied customers
-            </p>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="bg-white p-8 rounded-2xl shadow-lg"
-              >
-                <div className="flex items-center space-x-1 mb-4">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                  ))}
-                </div>
-                <p className="text-gray-600 mb-6 italic">"{testimonial.content}"</p>
-                <div className="flex items-center space-x-3">
-                  <img
-                    src={testimonial.image}
-                    alt={testimonial.name}
-                    className="w-12 h-12 rounded-full object-cover"
-                  />
-                  <div>
-                    <div className="font-semibold text-gray-900">{testimonial.name}</div>
-                    <div className="text-sm text-gray-600">{testimonial.role}</div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Contact Section */}
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="bg-gradient-to-r from-black to-[#333f63] rounded-3xl p-12 text-white">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="bg-gradient-to-br from-gray-900 via-primary/95 to-purple-900 rounded-[2.5rem] shadow-2xl p-12 text-white relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-[40rem] h-[40rem] bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
               <div>
                 <h2 className="text-4xl font-bold mb-6">
                   Need Help Planning Your Event?
