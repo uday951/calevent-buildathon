@@ -60,7 +60,7 @@ app.use('/uploads', (req, res, next) => {
 app.use('/', (req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   next();
-}, express.static(path.join(__dirname, '..', 'public')));
+}, express.static(path.join(__dirname, 'public')));
 
 // Security middleware
 app.use(helmetConfig);
