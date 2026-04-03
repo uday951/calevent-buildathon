@@ -184,6 +184,11 @@ export const deleteFile = (filePath) => {
 // Helper function to get file URL
 export const getFileUrl = (req, filePath) => {
   if (!filePath) return null;
+  // Already a full URL
+  if (filePath.startsWith('http://') || filePath.startsWith('https://')) return filePath;
+  // Public folder path (served by frontend Vite) — return as-is
+  if (filePath.startsWith('/')) return filePath;
+  // Backend upload path — prepend backend host
   const baseUrl = `${req.protocol}://${req.get('host')}`;
   return `${baseUrl}/${filePath.replace(/\\/g, '/')}`;
 };

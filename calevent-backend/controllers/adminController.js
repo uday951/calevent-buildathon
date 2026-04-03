@@ -2,20 +2,18 @@ import Admin from '../models/Admin.js';
 import Provider from '../models/Provider.js';
 import Customer from '../models/customer.js';
 import Event from '../models/EventModel.js';
-import Booking from '../models/Booking.js';
+import Booking from '../models/bookingModel.js';
 import jwt from 'jsonwebtoken';
 
-// Admin Login
+// ─── AUTH ────────────────────────────────────────────────────────────────────
+
 export const adminLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
-
     const admin = await Admin.findOne({ email, isActive: true }).select('+password');
+
     if (!admin || !(await admin.comparePassword(password))) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid credentials'
-      });
+      return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
 
     admin.lastLogin = new Date();
@@ -30,13 +28,7 @@ export const adminLogin = async (req, res) => {
     res.json({
       success: true,
       data: {
-        admin: {
-          id: admin._id,
-          name: admin.name,
-          email: admin.email,
-          role: admin.role,
-          permissions: admin.permissions
-        },
+        admin: { id: admin._id, name: admin.name, email: admin.email, role: admin.role },
         token
       }
     });
@@ -45,7 +37,8 @@ export const adminLogin = async (req, res) => {
   }
 };
 
-// Get Dashboard Stats
+// ─── DASHBOARD ───────────────────────────────────────────────────────────────
+
 export const getDashboardStats = async (req, res) => {
   try {
     const [
@@ -54,16 +47,23 @@ export const getDashboardStats = async (req, res) => {
       totalCustomers,
       totalEvents,
       totalBookings,
+      pendingBookings,
       monthlyRevenue
     ] = await Promise.all([
-      Provider.countDocuments(),
-      Provider.countDocuments({ isVerified: false }),
+      Provider.countDocuments({ isActive: true }),
+      Provider.countDocuments({ verificationStatus: 'pending' }),
       Customer.countDocuments(),
       Event.countDocuments({ isActive: true }),
       Booking.countDocuments(),
+      Booking.countDocuments({ adminStatus: 'pending_review' }),
       Booking.aggregate([
-        { $match: { status: 'confirmed', createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } } },
-        { $group: { _id: null, total: { $sum: '$totalAmount' } } }
+        {
+          $match: {
+            adminStatus: 'completed',
+            createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
+          }
+        },
+        { $group: { _id: null, total: { $sum: '$pricing.totalAmount' } } }
       ])
     ]);
 
@@ -73,7 +73,7 @@ export const getDashboardStats = async (req, res) => {
         providers: { total: totalProviders, pending: pendingProviders },
         customers: totalCustomers,
         events: totalEvents,
-        bookings: totalBookings,
+        bookings: { total: totalBookings, pending: pendingBookings },
         revenue: monthlyRevenue[0]?.total || 0
       }
     });
@@ -82,11 +82,12 @@ export const getDashboardStats = async (req, res) => {
   }
 };
 
-// Get Pending Providers
+// ─── PROVIDER VERIFICATION ───────────────────────────────────────────────────
+
 export const getPendingProviders = async (req, res) => {
   try {
-    const providers = await Provider.find({ isVerified: false })
-      .select('name businessName email phone categories location documents createdAt')
+    const providers = await Provider.find({ verificationStatus: 'pending' })
+      .select('name businessName email phone categories location description createdAt')
       .sort({ createdAt: -1 });
 
     res.json({ success: true, data: providers });
@@ -95,11 +96,28 @@ export const getPendingProviders = async (req, res) => {
   }
 };
 
-// Verify Provider
+export const getAllProviders = async (req, res) => {
+  try {
+    const { status = 'all' } = req.query;
+    const filter = {};
+    if (status === 'approved') filter.verificationStatus = 'approved';
+    else if (status === 'pending') filter.verificationStatus = 'pending';
+    else if (status === 'rejected') filter.verificationStatus = 'rejected';
+
+    const providers = await Provider.find(filter)
+      .select('name businessName email phone categories location isVerified isActive verificationStatus createdAt')
+      .sort({ createdAt: -1 });
+
+    res.json({ success: true, data: providers });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 export const verifyProvider = async (req, res) => {
   try {
     const { providerId } = req.params;
-    const { status, reason } = req.body; // 'approved' or 'rejected'
+    const { status, reason } = req.body;
 
     const provider = await Provider.findById(providerId);
     if (!provider) {
@@ -116,7 +134,7 @@ export const verifyProvider = async (req, res) => {
       provider.isActive = false;
       provider.isVerified = false;
       provider.verificationStatus = 'rejected';
-      provider.rejectionReason = reason;
+      provider.rejectionReason = reason || 'Application rejected by admin';
     }
 
     await provider.save();
@@ -124,10 +142,41 @@ export const verifyProvider = async (req, res) => {
     res.json({
       success: true,
       message: `Provider ${status} successfully`,
+      data: { providerId: provider._id, status: provider.verificationStatus }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ─── BOOKING MANAGEMENT ──────────────────────────────────────────────────────
+
+export const getAllBookings = async (req, res) => {
+  try {
+    const { adminStatus = 'all', page = 1, limit = 20 } = req.query;
+    const filter = {};
+    if (adminStatus !== 'all') filter.adminStatus = adminStatus;
+
+    const bookings = await Booking.find(filter)
+      .populate('customerId', 'name email phone')
+      .populate('eventId', 'title category eventImage')
+      .populate('assignedProvider', 'businessName name phone location')
+      .sort({ createdAt: -1 })
+      .limit(parseInt(limit))
+      .skip((parseInt(page) - 1) * parseInt(limit));
+
+    const total = await Booking.countDocuments(filter);
+
+    const statusCounts = await Booking.aggregate([
+      { $group: { _id: '$adminStatus', count: { $sum: 1 } } }
+    ]);
+
+    res.json({
+      success: true,
       data: {
-        providerId: provider._id,
-        status: provider.verificationStatus,
-        isActive: provider.isActive
+        bookings,
+        statusCounts: statusCounts.reduce((acc, s) => ({ ...acc, [s._id]: s.count }), {}),
+        pagination: { current: parseInt(page), pages: Math.ceil(total / limit), total }
       }
     });
   } catch (error) {
@@ -135,91 +184,278 @@ export const verifyProvider = async (req, res) => {
   }
 };
 
-// Get All Users
-export const getAllUsers = async (req, res) => {
+export const getBookingById = async (req, res) => {
   try {
-    const { type = 'all', page = 1, limit = 20 } = req.query;
-    const skip = (page - 1) * limit;
+    const booking = await Booking.findById(req.params.bookingId)
+      .populate('customerId', 'name email phone')
+      .populate('eventId', 'title category eventImage price')
+      .populate('assignedProvider', 'businessName name phone email location categories profileImage');
 
-    let users = [];
-    if (type === 'providers' || type === 'all') {
-      const providers = await Provider.find()
-        .select('name businessName email phone isVerified isActive createdAt')
-        .sort({ createdAt: -1 })
-        .skip(type === 'providers' ? skip : 0)
-        .limit(type === 'providers' ? parseInt(limit) : 10);
-      
-      users.push(...providers.map(p => ({ ...p.toObject(), userType: 'provider' })));
+    if (!booking) {
+      return res.status(404).json({ success: false, message: 'Booking not found' });
     }
 
-    if (type === 'customers' || type === 'all') {
-      const customers = await Customer.find()
-        .select('name email phone isActive createdAt')
-        .sort({ createdAt: -1 })
-        .skip(type === 'customers' ? skip : 0)
-        .limit(type === 'customers' ? parseInt(limit) : 10);
-      
-      users.push(...customers.map(c => ({ ...c.toObject(), userType: 'customer' })));
-    }
+    // Get available providers for this event type
+    const availableProviders = await Provider.find({
+      categories: booking.eventType,
+      isActive: true,
+      isVerified: true
+    }).select('businessName name phone location categories rating');
 
-    res.json({ success: true, data: users });
+    res.json({ success: true, data: { booking, availableProviders } });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// Suspend/Activate User
-export const toggleUserStatus = async (req, res) => {
+export const assignProvider = async (req, res) => {
   try {
-    const { userId, userType } = req.params;
-    const { action, reason } = req.body; // 'suspend' or 'activate'
+    const { bookingId } = req.params;
+    const { providerId, adminNotes } = req.body;
 
-    const Model = userType === 'provider' ? Provider : Customer;
-    const user = await Model.findById(userId);
-    
-    if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' });
+    const [booking, provider] = await Promise.all([
+      Booking.findById(bookingId),
+      Provider.findOne({ _id: providerId, isActive: true, isVerified: true })
+    ]);
+
+    if (!booking) {
+      return res.status(404).json({ success: false, message: 'Booking not found' });
+    }
+    if (!provider) {
+      return res.status(404).json({ success: false, message: 'Provider not found or not verified' });
     }
 
-    user.isActive = action === 'activate';
-    if (action === 'suspend') {
-      user.suspensionReason = reason;
-    }
+    booking.assignedProvider = providerId;
+    booking.adminStatus = 'provider_assigned';
+    booking.status = 'confirmed';
+    booking.adminNotes = adminNotes || '';
+    booking.assignedAt = new Date();
+    booking.assignedBy = req.admin._id;
+    booking.timeline.push({
+      status: 'provider_assigned',
+      message: `Provider "${provider.businessName}" assigned by admin`
+    });
 
-    await user.save();
+    await booking.save();
+
+    const updated = await Booking.findById(bookingId)
+      .populate('customerId', 'name email phone')
+      .populate('eventId', 'title category')
+      .populate('assignedProvider', 'businessName name phone location');
 
     res.json({
       success: true,
-      message: `User ${action}d successfully`
+      message: `Provider "${provider.businessName}" assigned successfully`,
+      data: { booking: updated }
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// Get Platform Analytics
+export const updateBookingAdminStatus = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    const { adminStatus, adminNotes } = req.body;
+
+    const booking = await Booking.findById(bookingId);
+    if (!booking) {
+      return res.status(404).json({ success: false, message: 'Booking not found' });
+    }
+
+    booking.adminStatus = adminStatus;
+    if (adminNotes) booking.adminNotes = adminNotes;
+
+    // Sync status field
+    const statusMap = {
+      pending_review: 'pending',
+      provider_assigned: 'confirmed',
+      confirmed: 'confirmed',
+      in_progress: 'in-progress',
+      completed: 'completed',
+      cancelled: 'cancelled'
+    };
+    booking.status = statusMap[adminStatus] || booking.status;
+    if (adminStatus === 'completed') booking.completedAt = new Date();
+
+    booking.timeline.push({ status: adminStatus, message: `Admin updated status to ${adminStatus}` });
+    await booking.save();
+
+    res.json({ success: true, message: `Booking status updated to ${adminStatus}` });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ─── USER MANAGEMENT ─────────────────────────────────────────────────────────
+
+export const getAllUsers = async (req, res) => {
+  try {
+    const { type = 'customers', page = 1, limit = 20 } = req.query;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    if (type === 'providers') {
+      const providers = await Provider.find()
+        .select('name businessName email phone isVerified isActive verificationStatus categories createdAt')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit));
+      const total = await Provider.countDocuments();
+      return res.json({ success: true, data: providers, total });
+    }
+
+    const customers = await Customer.find()
+      .select('name email phone isActive createdAt')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+    const total = await Customer.countDocuments();
+    res.json({ success: true, data: customers, total });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const toggleUserStatus = async (req, res) => {
+  try {
+    const { userId, userType } = req.params;
+    const { action, reason } = req.body;
+
+    const Model = userType === 'provider' ? Provider : Customer;
+    const user = await Model.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    user.isActive = action === 'activate';
+    if (action === 'suspend') user.suspensionReason = reason;
+    await user.save();
+
+    res.json({ success: true, message: `User ${action}d successfully` });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ─── ADMIN EVENT MANAGEMENT ──────────────────────────────────────────────────
+
+export const createAdminEvent = async (req, res) => {
+  try {
+    const eventData = { ...req.body, createdBy: 'admin', providerId: null };
+    
+    if (req.file) {
+      eventData.eventImage = req.file.path;
+    }
+
+    const event = new Event(eventData);
+    await event.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Admin event created successfully',
+      data: { event }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const updateAdminEvent = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    const event = await Event.findOne({ _id: eventId, createdBy: 'admin' });
+
+    if (!event) {
+      return res.status(404).json({ success: false, message: 'Admin event not found' });
+    }
+
+    const updateData = { ...req.body };
+    if (req.file) {
+      updateData.eventImage = req.file.path;
+    }
+
+    const updatedEvent = await Event.findByIdAndUpdate(eventId, updateData, { new: true });
+
+    res.json({
+      success: true,
+      message: 'Admin event updated successfully',
+      data: { event: updatedEvent }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const deleteAdminEvent = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    const event = await Event.findOne({ _id: eventId, createdBy: 'admin' });
+
+    if (!event) {
+      return res.status(404).json({ success: false, message: 'Admin event not found' });
+    }
+
+    event.isActive = false;
+    await event.save();
+
+    res.json({ success: true, message: 'Admin event deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const getAllAdminEvents = async (req, res) => {
+  try {
+    const { page = 1, limit = 20, category, isActive = 'true' } = req.query;
+    const filter = { createdBy: 'admin' };
+    
+    if (category && category !== 'all') filter.category = category;
+    if (isActive !== 'all') filter.isActive = isActive === 'true';
+
+    const events = await Event.find(filter)
+      .sort({ createdAt: -1 })
+      .skip((parseInt(page) - 1) * parseInt(limit))
+      .limit(parseInt(limit));
+
+    const total = await Event.countDocuments(filter);
+
+    res.json({
+      success: true,
+      data: {
+        events,
+        pagination: { current: parseInt(page), pages: Math.ceil(total / limit), total }
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ─── ANALYTICS ───────────────────────────────────────────────────────────────
+
 export const getAnalytics = async (req, res) => {
   try {
     const { period = '30' } = req.query;
-    const days = parseInt(period);
-    const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    const startDate = new Date(Date.now() - parseInt(period) * 24 * 60 * 60 * 1000);
 
     const [bookingTrends, categoryStats, revenueData] = await Promise.all([
       Booking.aggregate([
         { $match: { createdAt: { $gte: startDate } } },
-        { $group: {
-          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
-          count: { $sum: 1 },
-          revenue: { $sum: '$totalAmount' }
-        }},
+        {
+          $group: {
+            _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+            count: { $sum: 1 },
+            revenue: { $sum: '$pricing.totalAmount' }
+          }
+        },
         { $sort: { _id: 1 } }
       ]),
-      Event.aggregate([
-        { $group: { _id: '$category', count: { $sum: 1 } } }
+      Booking.aggregate([
+        { $group: { _id: '$eventType', count: { $sum: 1 } } }
       ]),
       Booking.aggregate([
-        { $match: { status: 'confirmed', createdAt: { $gte: startDate } } },
-        { $group: { _id: null, total: { $sum: '$totalAmount' }, count: { $sum: 1 } } }
+        { $match: { adminStatus: 'completed', createdAt: { $gte: startDate } } },
+        { $group: { _id: null, total: { $sum: '$pricing.totalAmount' }, count: { $sum: 1 } } }
       ])
     ]);
 

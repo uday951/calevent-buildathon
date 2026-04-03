@@ -1,13 +1,15 @@
 import Booking from '../models/bookingModel.js';
 import Event from '../models/EventModel.js';
-import Provider from '../models/Provider.js';
 import Customer from '../models/customer.js';
-import ImageRequest from '../models/ImageRequest.js';
 
-// Create new booking
+// Create new booking — NO provider assigned here, admin does it
 export const createBooking = async (req, res) => {
   try {
     const customerId = req.user?.id;
+    if (!customerId) {
+      return res.status(401).json({ success: false, message: 'Authentication required' });
+    }
+
     const {
       eventId,
       eventDate,
@@ -15,114 +17,55 @@ export const createBooking = async (req, res) => {
       venue,
       guests,
       contactDetails,
-      paymentMethod,
       specialRequests,
-      // AI booking fields
-      isAIGenerated,
-      requestId,
-      providerId,
-      eventType,
-      amount,
-      generatedImage,
-      eventTitle
+      paymentMethod
     } = req.body;
 
-    console.log('Creating booking for customer:', customerId);
-    console.log('Request body:', req.body);
-
-    if (!customerId) {
-      console.log('No customer ID found');
-      return res.status(401).json({
-        success: false,
-        message: 'Authentication required'
-      });
+    const event = await Event.findById(eventId);
+    if (!event || !event.isActive) {
+      return res.status(404).json({ success: false, message: 'Event not found' });
     }
 
-    // Generate unique booking ID
-    const bookingId = 'BK' + Date.now().toString().slice(-8) + Math.random().toString(36).substr(2, 4).toUpperCase();
-    
-    let bookingData = {
+    const basePrice = event.price;
+    const taxes = parseFloat((basePrice * 0.18).toFixed(2));
+    const totalAmount = parseFloat((basePrice + taxes).toFixed(2));
+
+    const booking = new Booking({
       customerId,
-      bookingId,
+      eventId,
+      eventType: event.category,
       eventDate,
       eventTime,
       venue,
       guestCount: guests || 50,
       contactDetails,
       specialRequirements: specialRequests,
-      payment: {
-        method: paymentMethod,
-        status: 'pending'
-      },
-      status: 'pending'
-    };
+      pricing: { basePrice, taxes, totalAmount },
+      payment: { method: paymentMethod || 'upi', status: 'pending' },
+      // adminStatus defaults to 'pending_review', assignedProvider is null
+      status: 'pending',
+      adminStatus: 'pending_review',
+      timeline: [{ status: 'pending', message: 'Booking submitted. Awaiting admin review.' }]
+    });
 
-    if (isAIGenerated) {
-      // AI-generated booking
-      bookingData = {
-        ...bookingData,
-        providerId,
-        eventId: 'ai-generated',
-        eventType,
-        pricing: {
-          basePrice: amount,
-          taxes: amount * 0.18,
-          totalAmount: amount + (amount * 0.18)
-        }
-      };
-    } else {
-      // Regular event booking
-      const event = await Event.findById(eventId).populate('providerId');
-      if (!event) {
-        return res.status(404).json({
-          success: false,
-          message: 'Event not found'
-        });
-      }
-
-      bookingData = {
-        ...bookingData,
-        eventId,
-        providerId: event.providerId._id,
-        eventType: event.category,
-        pricing: {
-          basePrice: event.price,
-          taxes: event.price * 0.18,
-          totalAmount: event.price + (event.price * 0.18)
-        }
-      };
-    }
-
-    console.log('Final booking data:', bookingData);
-    
-    const booking = new Booking(bookingData);
     await booking.save();
-    
-    console.log('Booking saved with ID:', booking._id);
 
-    // Populate the booking with related data
-    const populatedBooking = await Booking.findById(booking._id)
+    // Increment event booking count
+    await Event.findByIdAndUpdate(eventId, { $inc: { bookingCount: 1 } });
+
+    const populated = await Booking.findById(booking._id)
       .populate('customerId', 'name email phone')
-      .populate('providerId', 'businessName name email phone location')
-      .populate('eventId', 'title category');
-
-    console.log('Populated booking:', populatedBooking);
+      .populate('eventId', 'title category eventImage');
 
     res.status(201).json({
       success: true,
-      data: {
-        booking: populatedBooking,
-        message: 'Booking created successfully'
-      }
+      message: 'Booking submitted successfully! Our team will review and assign a provider shortly.',
+      data: { booking: populated }
     });
 
   } catch (error) {
     console.error('Create booking error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to create booking',
-      error: error.message
-    });
+    res.status(500).json({ success: false, message: 'Failed to create booking', error: error.message });
   }
 };
 
@@ -130,90 +73,61 @@ export const createBooking = async (req, res) => {
 export const getCustomerBookings = async (req, res) => {
   try {
     const customerId = req.user?.id;
-    const { status, page = 1, limit = 10 } = req.query;
-
-    console.log('Getting bookings for customer:', customerId);
-
     if (!customerId) {
-      return res.status(401).json({
-        success: false,
-        message: 'Authentication required'
-      });
+      return res.status(401).json({ success: false, message: 'Authentication required' });
     }
 
+    const { status, page = 1, limit = 10 } = req.query;
     const filter = { customerId };
-    if (status && status !== 'all') {
-      filter.status = status;
-    }
-
-    console.log('Booking filter:', filter);
+    if (status && status !== 'all') filter.status = status;
 
     const bookings = await Booking.find(filter)
-      .populate('providerId', 'businessName name email phone location profileImage')
-      .populate('eventId', 'title category image')
+      .populate('eventId', 'title category eventImage')
+      .populate('assignedProvider', 'businessName name phone location profileImage')
       .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
+      .limit(parseInt(limit))
+      .skip((parseInt(page) - 1) * parseInt(limit));
 
     const total = await Booking.countDocuments(filter);
-
-    console.log('Found bookings:', bookings.length, 'Total:', total);
 
     res.json({
       success: true,
       data: {
         bookings,
-        pagination: {
-          current: page,
-          pages: Math.ceil(total / limit),
-          total
-        }
+        pagination: { current: parseInt(page), pages: Math.ceil(total / limit), total }
       }
     });
-
   } catch (error) {
-    console.error('Get customer bookings error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to get bookings',
-      error: error.message
-    });
+    res.status(500).json({ success: false, message: 'Failed to get bookings', error: error.message });
   }
 };
 
-// Get provider bookings
+// Get provider assigned bookings (only bookings admin assigned to them)
 export const getProviderBookings = async (req, res) => {
   try {
     const providerId = req.user?.id;
-    const { status, page = 1, limit = 10 } = req.query;
-
     if (!providerId) {
-      return res.status(401).json({
-        success: false,
-        message: 'Authentication required'
-      });
+      return res.status(401).json({ success: false, message: 'Authentication required' });
     }
 
-    const filter = { providerId };
-    if (status && status !== 'all') {
-      filter.status = status;
-    }
+    const { status, page = 1, limit = 10 } = req.query;
+    const filter = { assignedProvider: providerId };
+    if (status && status !== 'all') filter.adminStatus = status;
 
     const bookings = await Booking.find(filter)
       .populate('customerId', 'name email phone')
-      .populate('eventId', 'title category image')
+      .populate('eventId', 'title category eventImage')
       .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
+      .limit(parseInt(limit))
+      .skip((parseInt(page) - 1) * parseInt(limit));
 
     const total = await Booking.countDocuments(filter);
 
-    // Calculate stats
     const stats = {
-      pending: await Booking.countDocuments({ providerId, status: 'pending' }),
-      confirmed: await Booking.countDocuments({ providerId, status: 'confirmed' }),
-      completed: await Booking.countDocuments({ providerId, status: 'completed' }),
-      cancelled: await Booking.countDocuments({ providerId, status: 'cancelled' })
+      assigned: await Booking.countDocuments({ assignedProvider: providerId, adminStatus: 'provider_assigned' }),
+      confirmed: await Booking.countDocuments({ assignedProvider: providerId, adminStatus: 'confirmed' }),
+      in_progress: await Booking.countDocuments({ assignedProvider: providerId, adminStatus: 'in_progress' }),
+      completed: await Booking.countDocuments({ assignedProvider: providerId, adminStatus: 'completed' })
     };
 
     res.json({
@@ -221,81 +135,43 @@ export const getProviderBookings = async (req, res) => {
       data: {
         bookings,
         stats,
-        pagination: {
-          current: page,
-          pages: Math.ceil(total / limit),
-          total
-        }
+        pagination: { current: parseInt(page), pages: Math.ceil(total / limit), total }
       }
     });
-
   } catch (error) {
-    console.error('Get provider bookings error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to get bookings',
-      error: error.message
-    });
+    res.status(500).json({ success: false, message: 'Failed to get bookings', error: error.message });
   }
 };
 
-// Update booking status
+// Provider updates execution status (only after admin assigns)
 export const updateBookingStatus = async (req, res) => {
   try {
     const { bookingId } = req.params;
-    const { status, providerNotes, estimatedDelivery } = req.body;
+    const { status, providerNotes } = req.body;
     const providerId = req.user?.id;
 
-    if (!providerId) {
-      return res.status(401).json({
-        success: false,
-        message: 'Authentication required'
-      });
-    }
-
-    const booking = await Booking.findOne({ 
-      _id: bookingId, 
-      providerId 
-    });
-
+    const booking = await Booking.findOne({ _id: bookingId, assignedProvider: providerId });
     if (!booking) {
-      return res.status(404).json({
-        success: false,
-        message: 'Booking not found'
-      });
+      return res.status(404).json({ success: false, message: 'Booking not found or not assigned to you' });
     }
 
-    booking.status = status;
-    if (providerNotes) booking.providerNotes = providerNotes;
-    if (estimatedDelivery) booking.estimatedDelivery = estimatedDelivery;
-
-    if (status === 'confirmed') {
-      booking.confirmedAt = new Date();
-    } else if (status === 'completed') {
-      booking.completedAt = new Date();
+    // Provider can only update execution statuses
+    const allowedStatuses = ['in_progress', 'completed'];
+    if (!allowedStatuses.includes(status)) {
+      return res.status(403).json({ success: false, message: 'Providers can only update to in_progress or completed' });
     }
 
+    booking.adminStatus = status;
+    booking.status = status === 'completed' ? 'completed' : 'in-progress';
+    if (providerNotes) booking.adminNotes = providerNotes;
+    if (status === 'completed') booking.completedAt = new Date();
+
+    booking.timeline.push({ status, message: `Provider updated status to ${status}` });
     await booking.save();
 
-    const updatedBooking = await Booking.findById(booking._id)
-      .populate('customerId', 'name email phone')
-      .populate('providerId', 'businessName name email phone');
-
-    res.json({
-      success: true,
-      data: {
-        booking: updatedBooking,
-        message: `Booking ${status} successfully`
-      }
-    });
-
+    res.json({ success: true, message: `Booking updated to ${status}` });
   } catch (error) {
-    console.error('Update booking status error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to update booking',
-      error: error.message
-    });
+    res.status(500).json({ success: false, message: 'Failed to update booking', error: error.message });
   }
 };
 
@@ -307,35 +183,21 @@ export const getBookingById = async (req, res) => {
 
     const booking = await Booking.findById(bookingId)
       .populate('customerId', 'name email phone')
-      .populate('providerId', 'businessName name email phone location profileImage')
-      .populate('eventId', 'title category image');
+      .populate('assignedProvider', 'businessName name phone location profileImage')
+      .populate('eventId', 'title category eventImage');
 
     if (!booking) {
-      return res.status(404).json({
-        success: false,
-        message: 'Booking not found'
-      });
+      return res.status(404).json({ success: false, message: 'Booking not found' });
     }
 
-    // Check if user has access to this booking
-    if (booking.customerId._id.toString() !== userId && booking.providerId._id.toString() !== userId) {
-      return res.status(403).json({
-        success: false,
-        message: 'Access denied'
-      });
+    const isCustomer = booking.customerId?._id?.toString() === userId;
+    const isProvider = booking.assignedProvider?._id?.toString() === userId;
+    if (!isCustomer && !isProvider) {
+      return res.status(403).json({ success: false, message: 'Access denied' });
     }
 
-    res.json({
-      success: true,
-      data: { booking }
-    });
-
+    res.json({ success: true, data: { booking } });
   } catch (error) {
-    console.error('Get booking by ID error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to get booking',
-      error: error.message
-    });
+    res.status(500).json({ success: false, message: 'Failed to get booking', error: error.message });
   }
 };

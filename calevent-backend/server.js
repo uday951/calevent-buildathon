@@ -24,6 +24,7 @@ import imageRoutes from './routes/imageRoutes.js';
 import comboRoutes from './routes/comboRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import eventRequestRoutes from './routes/eventRequestRoutes.js';
 
 // Get current directory
 const __filename = fileURLToPath(import.meta.url);
@@ -33,11 +34,7 @@ const __dirname = path.dirname(__filename);
 dotenv.config();
 
 // Validate required environment variables
-const requiredEnvVars = [
-  'PORT',
-  'MONGO_URI',
-  'JWT_SECRET'
-];
+const requiredEnvVars = ['PORT', 'MONGO_URI', 'JWT_SECRET', 'FRONTEND_URL'];
 
 const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
 if (missingEnvVars.length > 0) {
@@ -58,6 +55,12 @@ app.use('/uploads', (req, res, next) => {
   res.header('Access-Control-Allow-Methods', 'GET');
   next();
 }, express.static(path.join(__dirname, 'uploads')));
+
+// Serve frontend public folder (event images seeded from /weddings, /Birthdays, etc.)
+app.use('/', (req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  next();
+}, express.static(path.join(__dirname, '..', 'public')));
 
 // Security middleware
 app.use(helmetConfig);
@@ -95,6 +98,7 @@ app.use('/api/image', imageRoutes);
 app.use('/api/combo', comboRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/event-requests', eventRequestRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {

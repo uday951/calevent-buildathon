@@ -11,15 +11,15 @@ const bookingSchema = new mongoose.Schema({
     ref: 'Customer',
     required: true
   },
-  providerId: {
+  // Provider is NOT assigned at booking time — admin assigns later
+  assignedProvider: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Provider',
-    required: true
+    default: null
   },
   eventId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Event',
-    required: true
+    ref: 'Event'
   },
   eventType: {
     type: String,
@@ -99,6 +99,18 @@ const bookingSchema = new mongoose.Schema({
     razorpayPaymentId: String,
     paidAt: Date
   },
+  // Admin control fields
+  adminStatus: {
+    type: String,
+    enum: ['pending_review', 'provider_assigned', 'confirmed', 'in_progress', 'completed', 'cancelled'],
+    default: 'pending_review'
+  },
+  adminNotes: String,
+  assignedAt: Date,
+  assignedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Admin'
+  },
   status: {
     type: String,
     enum: ['pending', 'confirmed', 'in-progress', 'completed', 'cancelled'],
@@ -170,7 +182,8 @@ bookingSchema.pre('save', function(next) {
 // Indexes for better performance
 bookingSchema.index({ bookingId: 1 });
 bookingSchema.index({ customerId: 1 });
-bookingSchema.index({ providerId: 1 });
+bookingSchema.index({ assignedProvider: 1 });
+bookingSchema.index({ adminStatus: 1 });
 bookingSchema.index({ eventId: 1 });
 bookingSchema.index({ eventDate: 1 });
 bookingSchema.index({ status: 1 });

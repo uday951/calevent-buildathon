@@ -15,7 +15,26 @@ const eventSchema = new mongoose.Schema({
   category: {
     type: String,
     required: [true, 'Event category is required'],
-    enum: ['wedding', 'corporate', 'birthday', 'anniversary', 'conference', 'party']
+    enum: ['wedding', 'corporate', 'birthday', 'anniversary', 'conference', 'party', 'haldi', 'engagement']
+  },
+  subcategory: {
+    type: String,
+    enum: ['catering', 'lighting', 'dj', 'photography', 'decoration', 'venue', 'stage', 'sound', 'videography', 'anchor', 'transport', 'security', 'full_package'],
+    default: 'full_package'
+  },
+  tag: {
+    type: String,
+    enum: ['premium', 'budget', 'popular', 'trending', 'bestseller', 'new', 'top_rated'],
+    default: 'popular'
+  },
+  createdBy: {
+    type: String,
+    enum: ['admin', 'provider'],
+    default: 'provider'
+  },
+  priceMax: {
+    type: Number,
+    default: null
   },
   price: {
     type: Number,
@@ -26,10 +45,14 @@ const eventSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Event image is required']
   },
+  images: [{
+    type: String,
+    trim: true
+  }],
   providerId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Provider',
-    required: true
+    default: null
   },
   providerName: {
     type: String,
@@ -160,6 +183,9 @@ eventSchema.methods.calculateAverageRating = function() {
 
 // Indexes for better performance
 eventSchema.index({ category: 1 });
+eventSchema.index({ subcategory: 1 });
+eventSchema.index({ createdBy: 1 });
+eventSchema.index({ tag: 1 });
 eventSchema.index({ providerId: 1 });
 eventSchema.index({ 'location.city': 1 });
 eventSchema.index({ price: 1 });
