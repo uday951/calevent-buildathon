@@ -192,19 +192,18 @@ const server = app.listen(PORT, () => {
   `);
 
   // --- Self-Ping Mechanism ---
-  // To prevent the Render free tier from sleeping, we hit our own health endpoint
-  // Note: 5 seconds is very aggressive! Render's limit is usually handling inactivity after 15 minutes.
-  // The user requested 5 seconds, so we will use 5 seconds (5000ms).
-  const PING_INTERVAL = 5 * 1000;
+  // To prevent Render free tier from sleeping after 15 minutes of inactivity
+  const PING_INTERVAL = 15 * 1000; // 15 seconds
   setInterval(() => {
     const backendUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
     fetch(`${backendUrl}/health`)
       .then(res => {
-        // You can uncomment this if you want to see the 5-sec logs, but it will flood your terminal!
-        // console.log(`[Self-Ping] Successful check to ${backendUrl}/health - Status: ${res.status}`);
+        console.log(`[Self-Ping] ✓ Keep-alive ping successful - Status: ${res.status}`);
       })
       .catch(err => console.error(`[Self-Ping Error]:`, err.message));
   }, PING_INTERVAL);
+  
+  console.log(`⏰ Self-ping enabled: Pinging /health every 15 seconds to prevent sleep mode`);
 });
 
 // Graceful shutdown

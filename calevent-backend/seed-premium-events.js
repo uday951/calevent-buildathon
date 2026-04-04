@@ -10,6 +10,7 @@ const events = [
     title: "Royal Palace Wedding Experience",
     description: "Transform your special day into a fairytale with our premium palace wedding package. Grand mandap, floral decorations, catering for 500 guests, live music, and professional photography.",
     category: "wedding", subcategory: "full_package", tag: "premium", createdBy: "admin",
+    price: 1, priceMax: null,
     eventImage: "/weddings/m.jpg",
     images: ["/weddings/m (2).jpg", "/weddings/m (3).jpg", "/weddings/m (4).jpg"],
     providerName: "CALEVENT", providerId: null,
@@ -24,7 +25,7 @@ const events = [
     title: "Beachside Destination Wedding",
     description: "Say 'I do' with waves as your backdrop. Intimate beach wedding setup with sunset ceremony, bonfire reception, and gourmet seafood catering.",
     category: "wedding", subcategory: "venue", tag: "trending", createdBy: "admin",
-    price: 650000, priceMax: 900000,
+    price: 1, priceMax: null,
     eventImage: "/weddings/m (5).jpg",
     images: ["/weddings/m (6).jpg", "/weddings/m (7).jpg"],
     providerName: "CALEVENT", providerId: null,
@@ -39,7 +40,7 @@ const events = [
     title: "Garden Wedding Elegance",
     description: "Enchanting garden wedding with floral arches, fairy lights, and nature-inspired decor. Perfect for intimate ceremonies with up to 200 guests.",
     category: "wedding", subcategory: "decoration", tag: "popular", createdBy: "admin",
-    price: 320000, priceMax: 450000,
+    price: 1, priceMax: null,
     eventImage: "/weddings/m (8).jpg",
     images: ["/weddings/m (9).jpg", "/weddings/m (10).jpg"],
     providerName: "CALEVENT", providerId: null,
@@ -54,7 +55,7 @@ const events = [
     title: "Traditional Indian Mandap Wedding",
     description: "A grand traditional Indian wedding with an ornate mandap, priest arrangements, full catering, baraat welcome, and complete decor.",
     category: "wedding", subcategory: "full_package", tag: "bestseller", createdBy: "admin",
-    price: 480000, priceMax: 700000,
+    price: 1, priceMax: null,
     eventImage: "/weddings/m (11).jpg",
     images: ["/weddings/images.jpg", "/weddings/images-2.jpg"],
     providerName: "CALEVENT", providerId: null,
@@ -69,7 +70,7 @@ const events = [
     title: "Royal Bridal Wedding Package",
     description: "Complete bridal experience with makeup artists, bridal suite, phera ceremony, and a grand reception dinner for 300 guests.",
     category: "wedding", subcategory: "full_package", tag: "premium", createdBy: "admin",
-    price: 720000, priceMax: 1000000,
+    price: 1, priceMax: null,
     eventImage: "/weddings/royal_broz_event_and_wedding_planner_1_15_232983_157303596628983.jpg",
     images: ["/weddings/wedding-party-event-management.jpg", "/weddings/429baf18cbb66c62afa1fcb44918dd6e.jpg"],
     providerName: "CALEVENT", providerId: null,
@@ -86,7 +87,7 @@ const events = [
     title: "Executive Conference & Summit",
     description: "Professional conference setup with state-of-the-art AV equipment, breakout rooms, networking lounge, and gourmet catering for 200–500 attendees.",
     category: "corporate", subcategory: "full_package", tag: "premium", createdBy: "admin",
-    price: 450000, priceMax: 750000,
+    price: 1, priceMax: null,
     eventImage: "/corporate/1df693c9-6be4-43be-a0a7-683ed62d091e.jpg",
     images: ["/corporate/3b2d72e0-8816-429a-8b95-d534b8849067.jpg", "/corporate/f9a645c2-2f8a-4bcc-add7-c6652a6251c4.jpg"],
     providerName: "CALEVENT", providerId: null,
@@ -101,7 +102,7 @@ const events = [
     title: "Product Launch Extravaganza",
     description: "Make your product launch unforgettable with LED walls, interactive displays, media coverage setup, and celebrity host arrangements.",
     category: "corporate", subcategory: "stage", tag: "trending", createdBy: "admin",
-    price: 580000, priceMax: 850000,
+    price: 1, priceMax: null,
     eventImage: "/corporate/3b2d72e0-8816-429a-8b95-d534b8849067.jpg",
     images: ["/corporate/f9a645c2-2f8a-4bcc-add7-c6652a6251c4.jpg", "/corporate/1df693c9-6be4-43be-a0a7-683ed62d091e.jpg"],
     providerName: "CALEVENT", providerId: null,
@@ -116,7 +117,7 @@ const events = [
     title: "Team Building Retreat",
     description: "Outdoor team building activities, workshops, adventure sports, and bonding sessions. Includes meals and activity coordinators.",
     category: "corporate", subcategory: "full_package", tag: "popular", createdBy: "admin",
-    price: 180000, priceMax: 280000,
+    price: 1, priceMax: null,
     eventImage: "/corporate/f9a645c2-2f8a-4bcc-add7-c6652a6251c4.jpg",
     images: ["/corporate/1df693c9-6be4-43be-a0a7-683ed62d091e.jpg"],
     providerName: "CALEVENT", providerId: null,
@@ -133,7 +134,7 @@ const events = [
     title: "Kids Birthday Carnival",
     description: "Ultimate kids party with bouncy castles, magic show, face painting, games, themed decor, and custom cake. Entertainment guaranteed!",
     category: "birthday", subcategory: "full_package", tag: "bestseller", createdBy: "admin",
-    price: 45000, priceMax: 75000,
+    price: 1, priceMax: null,
     eventImage: "/Birthdays/b.jpg",
     images: ["/Birthdays/b (2).jpg", "/Birthdays/b (3).jpg", "/Birthdays/b (4).jpg"],
     providerName: "CALEVENT", providerId: null,
@@ -148,7 +149,7 @@ const events = [
     title: "Luxury Adult Birthday Bash",
     description: "Sophisticated birthday celebration with DJ, premium bar, gourmet catering, and elegant decor. Perfect for milestone birthdays.",
     category: "birthday", subcategory: "full_package", tag: "premium", createdBy: "admin",
-    price: 125000, priceMax: 200000,
+    price: 1, priceMax: null,
     eventImage: "/Birthdays/b (5).jpg",
     images: ["/Birthdays/b (6).jpg", "/Birthdays/b (7).jpg"],
     providerName: "CALEVENT", providerId: null,
@@ -163,7 +164,7 @@ const events = [
     title: "Surprise Birthday Party Setup",
     description: "We plan the perfect surprise! Secret coordination with family, balloon drops, custom banners, and a fully themed venue setup.",
     category: "birthday", subcategory: "decoration", tag: "trending", createdBy: "admin",
-    price: 35000, priceMax: 60000,
+    price: 1, priceMax: null,
     eventImage: "/Birthdays/b (8).jpg",
     images: ["/Birthdays/b (9).jpg", "/Birthdays/b (10).jpg"],
     providerName: "CALEVENT", providerId: null,
@@ -178,7 +179,7 @@ const events = [
     title: "Neon Glow Birthday Night",
     description: "Trendy neon-themed birthday party with UV lights, glow accessories, DJ, and a vibrant dance floor for teens and young adults.",
     category: "birthday", subcategory: "dj", tag: "trending", createdBy: "admin",
-    price: 55000, priceMax: 90000,
+    price: 1, priceMax: null,
     eventImage: "/Birthdays/b (2).jpg",
     images: ["/Birthdays/b (3).jpg", "/Birthdays/b (4).jpg"],
     providerName: "CALEVENT", providerId: null,
@@ -195,7 +196,7 @@ const events = [
     title: "Romantic Engagement Ceremony",
     description: "Intimate engagement setup with floral arrangements, ring ceremony stage, professional photography, and dinner for close family and friends.",
     category: "engagement", subcategory: "decoration", tag: "trending", createdBy: "admin",
-    price: 95000, priceMax: 150000,
+    price: 1, priceMax: null,
     eventImage: "/enggement/e.jpg",
     images: ["/enggement/e (2).jpg", "/enggement/e (3).jpg", "/enggement/e (4).jpg"],
     providerName: "CALEVENT", providerId: null,
@@ -210,7 +211,7 @@ const events = [
     title: "Grand Engagement Celebration",
     description: "A lavish engagement event with a grand stage, live music, premium catering, and a stunning floral backdrop for the perfect ring moment.",
     category: "engagement", subcategory: "full_package", tag: "premium", createdBy: "admin",
-    price: 180000, priceMax: 280000,
+    price: 1, priceMax: null,
     eventImage: "/enggement/e (5).jpg",
     images: ["/enggement/e (6).jpg", "/enggement/e (7).jpg", "/enggement/e (8).jpg"],
     providerName: "CALEVENT", providerId: null,
@@ -225,7 +226,7 @@ const events = [
     title: "Intimate Ring Ceremony",
     description: "A cozy and intimate ring ceremony for close family with elegant decor, a beautiful ring exchange setup, and a sit-down dinner.",
     category: "engagement", subcategory: "decoration", tag: "popular", createdBy: "admin",
-    price: 55000, priceMax: 85000,
+    price: 1, priceMax: null,
     eventImage: "/enggement/e (9).jpg",
     images: ["/enggement/e (10).jpg", "/enggement/e (11).jpg"],
     providerName: "CALEVENT", providerId: null,
@@ -240,7 +241,7 @@ const events = [
     title: "Rooftop Engagement Under Stars",
     description: "A dreamy rooftop engagement ceremony with fairy lights, candles, a live acoustic guitarist, and a gourmet dinner for two families.",
     category: "engagement", subcategory: "venue", tag: "trending", createdBy: "admin",
-    price: 120000, priceMax: 180000,
+    price: 1, priceMax: null,
     eventImage: "/enggement/e (12).jpg",
     images: ["/enggement/e (13).jpg", "/enggement/e (14).jpg", "/enggement/e (15).jpg"],
     providerName: "CALEVENT", providerId: null,
@@ -257,7 +258,7 @@ const events = [
     title: "Traditional Haldi Ceremony",
     description: "Vibrant haldi ceremony with traditional decor, marigold flowers, dhol players, and authentic catering. Celebrate with colors and joy!",
     category: "haldi", subcategory: "decoration", tag: "popular", createdBy: "admin",
-    price: 65000, priceMax: 95000,
+    price: 1, priceMax: null,
     eventImage: "/haldi/h.jpg",
     images: ["/haldi/h (2).jpg", "/haldi/h (3).jpg"],
     providerName: "CALEVENT", providerId: null,
@@ -272,7 +273,7 @@ const events = [
     title: "Grand Haldi & Mehendi Celebration",
     description: "A combined haldi and mehendi event with professional mehendi artists, dhol, folk music, traditional food, and vibrant floral decor.",
     category: "haldi", subcategory: "full_package", tag: "trending", createdBy: "admin",
-    price: 95000, priceMax: 140000,
+    price: 1, priceMax: null,
     eventImage: "/haldi/h (4).jpg",
     images: ["/haldi/h (5).jpg", "/haldi/h (6).jpg"],
     providerName: "CALEVENT", providerId: null,
@@ -287,7 +288,7 @@ const events = [
     title: "Intimate Haldi Morning Ritual",
     description: "A close-knit haldi morning with family, featuring turmeric paste ceremony, traditional songs, and a light breakfast spread.",
     category: "haldi", subcategory: "decoration", tag: "popular", createdBy: "admin",
-    price: 35000, priceMax: 55000,
+    price: 1, priceMax: null,
     eventImage: "/haldi/h (2).jpg",
     images: ["/haldi/h (3).jpg", "/haldi/h.jpg"],
     providerName: "CALEVENT", providerId: null,
@@ -304,7 +305,7 @@ const events = [
     title: "Golden Anniversary Celebration",
     description: "Celebrate 50 years of togetherness with an elegant anniversary party. Includes live music, gourmet dinner, and memory slideshow.",
     category: "anniversary", subcategory: "full_package", tag: "premium", createdBy: "admin",
-    price: 155000, priceMax: 220000,
+    price: 1, priceMax: null,
     eventImage: "/weddings/m (3).jpg",
     images: ["/weddings/m (4).jpg", "/weddings/m (5).jpg"],
     providerName: "CALEVENT", providerId: null,
@@ -321,7 +322,7 @@ const events = [
     title: "Pool Party Extravaganza",
     description: "Ultimate pool party with DJ, cocktail bar, BBQ grill, pool games, and tropical decor. Perfect for summer celebrations!",
     category: "party", subcategory: "dj", tag: "trending", createdBy: "admin",
-    price: 85000, priceMax: 130000,
+    price: 1, priceMax: null,
     eventImage: "/parties/images-3.jpg",
     images: ["/parties/images-4.jpg", "/parties/images-5.jpg"],
     providerName: "CALEVENT", providerId: null,
@@ -336,7 +337,7 @@ const events = [
     title: "New Year's Eve Gala",
     description: "Ring in the new year with style! Live band, champagne toast, gourmet buffet, and spectacular fireworks display.",
     category: "party", subcategory: "full_package", tag: "bestseller", createdBy: "admin",
-    price: 195000, priceMax: 280000,
+    price: 1, priceMax: null,
     eventImage: "/parties/images-4.jpg",
     images: ["/parties/images-5.jpg", "/parties/images-3.jpg"],
     providerName: "CALEVENT", providerId: null,
@@ -353,7 +354,7 @@ const events = [
     title: "Tech Summit & Expo",
     description: "Large-scale tech conference with exhibition booths, keynote stage, networking zones, and digital registration system.",
     category: "conference", subcategory: "full_package", tag: "premium", createdBy: "admin",
-    price: 680000, priceMax: 950000,
+    price: 1, priceMax: null,
     eventImage: "/corporate/1df693c9-6be4-43be-a0a7-683ed62d091e.jpg",
     images: ["/corporate/3b2d72e0-8816-429a-8b95-d534b8849067.jpg"],
     providerName: "CALEVENT", providerId: null,
@@ -371,12 +372,19 @@ const seedEvents = async () => {
     await mongoose.connect(process.env.MONGO_URI);
     console.log('✅ MongoDB Connected');
 
-    await Event.deleteMany({});
-    console.log('🗑️  Cleared existing events');
+    await Event.deleteMany({ createdBy: 'admin' });
+    console.log('🗑️  Cleared existing admin events');
 
     await Event.insertMany(events);
-    console.log(`✅ Successfully seeded ${events.length} events`);
-    console.log('Categories: wedding(5), corporate(3), birthday(4), engagement(4), haldi(3), anniversary(1), party(2), conference(1)');
+    console.log(`✅ Successfully seeded ${events.length} premium events`);
+    
+    const categoryCount = events.reduce((acc, e) => {
+      acc[e.category] = (acc[e.category] || 0) + 1;
+      return acc;
+    }, {});
+    
+    console.log('\n📊 Events by Category:');
+    console.table(categoryCount);
 
     process.exit(0);
   } catch (error) {
