@@ -60,7 +60,7 @@ export const getDashboardStats = async (req, res) => {
         {
           $match: {
             adminStatus: 'completed',
-            createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
+            completedAt: { $exists: true, $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
           }
         },
         { $group: { _id: null, total: { $sum: '$pricing.totalAmount' } } }
