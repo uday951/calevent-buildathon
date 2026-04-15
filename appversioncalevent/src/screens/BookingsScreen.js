@@ -36,11 +36,23 @@ export const BookingsScreen = ({ navigation }) => {
       const token = await AsyncStorage.getItem('@auth_token');
       if (!token) { setBookings(MOCK); setIsLoggedIn(false); setLoading(false); setRefreshing(false); return; }
       setIsLoggedIn(true);
-      const params = { page: 1, limit: 50 };
-      if (tab !== 'all') params.status = tab;
-      const res  = await api.get('/bookings/customer', { params });
-      const data = res.data?.data?.bookings || res.data?.bookings || [];
-      setBookings(data.length > 0 ? data : MOCK);
+      const res  = await api.get('/event-requests/my');
+      const data = res.data?.data?.requests || [];
+      // Map event-request fields to booking card fields
+      const mapped = data.map(r => ({
+        _id: r._id,
+        eventTitle: r.eventTitle || `${r.eventType} Event`,
+        eventDate: r.eventDate,
+        eventTime: r.eventTime,
+        status: r.status === 'approved' ? 'confirmed' : r.status === 'providers_assigned' ? 'confirmed' : r.status,
+        totalAmount: r.quotation?.totalAmount || r.budget?.max || 0,
+        guests: r.guestCount,
+        venue: r.location?.city,
+        eventImage: 'https://picsum.photos/400/300?random=' + Math.floor(Math.random() * 20),
+        providerId: r.assignments?.[0]?.providerId ? { businessName: r.assignments[0].providerId.businessName || r.assignments[0].providerId.name } : null,
+        requestNumber: r.requestNumber,
+      }));
+      setBookings(mapped.length > 0 ? mapped : MOCK);
     } catch {
       setBookings(MOCK);
     } finally {

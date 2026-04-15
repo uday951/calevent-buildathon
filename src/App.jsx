@@ -24,6 +24,7 @@ const Dashboard = lazy(() => import('@/provider/dashboard'))
 const PostEvent = lazy(() => import('@/provider/post-event'))
 const ProviderBookingDashboard = lazy(() => import('@/provider/providerBookinDashboard'))
 const EventDetail = lazy(() => import('@/customer/EventDetails'))
+const BookEvent = lazy(() => import('@/customer/BookEvent'))
 const BookEventForm = lazy(() => import('@/customer/BookEventForm'))
 const ProviderPublicProfile = lazy(() => import('@/pages/ProviderPublicProfile'))
 const CustomerBookingDashboard = lazy(() => import('@/customer/customerBookingDashboard'))
@@ -136,12 +137,12 @@ function App() {
             } />
             <Route path="/book-event/:eventId" element={
               <ProtectedRoute requiredRole="customer">
-                <BookEventForm />
+                <BookEvent />
               </ProtectedRoute>
             } />
             <Route path="/book/:eventId" element={
               <ProtectedRoute requiredRole="customer">
-                <BookEventForm />
+                <BookEvent />
               </ProtectedRoute>
             } />
             <Route path="/profile" element={

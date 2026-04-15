@@ -5,7 +5,8 @@
   
   <p><strong>Redefining the event industry with Multi-Tier AI, seamless UX, and hyper-premium architecture.</strong></p>
   
-  > **Live Demo:** [https://calevent-buildathon.onrender.com](https://calevent-buildathon.onrender.com)
+  > **Live Demo (Web):** [https://calevent-buildathon.onrender.com](https://calevent-buildathon.onrender.com)  
+  > **Mobile App:** Available for Android (APK v2.0.0)
 </div>
 
 ---
@@ -13,6 +14,8 @@
 CALEVENT is an enterprise-grade, full-stack event booking platform engineered to bridge the gap between event organizers (providers) and customers seamlessly. What sets CALEVENT apart is its **deeply integrated, state-of-the-art Multi-Tier Artificial Intelligence System**, designed to act as an autonomous event planner, intelligent concierge, and dynamic data analyzer.
 
 Built with massive scalability in mind, CALEVENT brings the ultimate modern aesthetic, utilizing Framer Motion animations, complex React architectures, secure role-based access control, and real-time AI processing capabilities.
+
+**Now available on both Web and Mobile platforms!**
 
 ---
 
@@ -61,13 +64,22 @@ It does not rely on a single model; instead, it orchestrates multiple AI brains:
 
 ## 💻 Elite Tech Stack
 
-**Frontend Framework & UX:**
+**Web Frontend Framework & UX:**
 
 - **Core:** React 19 (Vite)
 - **Aesthetics & CSS:** Tailwind CSS, Styled Components, Tailwind Variants
 - **Dynamic Motion:** Framer Motion, Anime.js, Tailwind-Animate
 - **State & Routing:** Zustand / Context API, React Router v7, React Hook Form
 - **Maps & Integrations:** React Leaflet, Lucide Icons, Material UI (MUI)
+
+**Mobile App (React Native):**
+
+- **Framework:** React Native 0.81.5, Expo SDK 54
+- **Navigation:** React Navigation v6 (Stack & Bottom Tabs)
+- **State Management:** Zustand v5
+- **API Client:** Axios
+- **Storage:** AsyncStorage
+- **UI:** Custom components with emoji icons
 
 **Backend Architecture:**
 
@@ -127,7 +139,7 @@ node seed-admin.js
 npm run dev
 ```
 
-### 3. Frontend Setup
+### 3. Web Frontend Setup
 
 Open a new terminal window in the root directory:
 
@@ -136,7 +148,24 @@ npm install
 npm run dev
 ```
 
-The application will smoothly launch on `http://localhost:5173/`
+The web application will launch on `http://localhost:5173/`
+
+### 4. Mobile App Setup (Optional)
+
+Open a new terminal window:
+
+```bash
+cd appversioncalevent
+npm install
+npm start
+```
+
+Scan the QR code with Expo Go app on your Android device.
+
+**To build APK:**
+```bash
+eas build --platform android --profile preview
+```
 
 ---
 
@@ -148,9 +177,14 @@ CALEVENT utilizes a strict multi-tier authentication flow with no loopholes. Hig
 
 _(Must be seeded into the database using `node seed-admin.js` in the backend directory)_
 
+**Web:**
 - **URL:** `http://localhost:5173/admin/login`
 - **Email:** `admin@calevent.com`
 - **Password:** `admin123`
+
+**Mobile App:**
+- Login with same credentials on the app login screen
+- Automatically opens Admin Dashboard instead of customer app
 
 ### 🏢 Provider Lifecyle Workflow
 
@@ -161,17 +195,95 @@ _(Must be seeded into the database using `node seed-admin.js` in the backend dir
 
 ### 🤵 Customer Workflow
 
-- Customers bypass business audits. They can register securely and log in instantly at `http://localhost:5173/login/customer`.
+**Web:** Customers can register securely and log in instantly at `http://localhost:5173/login/customer`.
+
+**Mobile App:** Register or login directly in the app to access all customer features.
 
 ---
 
-## �️ Security Implementations
+## 📱 Mobile App Features
+
+### Screenshots
+
+<div align="center">
+  <img src="public/mobile screenshorts/WhatsApp Image 2026-04-15 at 2.55.12 PM.jpeg" width="200" alt="Home Screen">
+  <img src="public/mobile screenshorts/WhatsApp Image 2026-04-15 at 2.55.12 PM (1).jpeg" width="200" alt="Flash Offers">
+  <img src="public/mobile screenshorts/WhatsApp Image 2026-04-15 at 2.55.13 PM.jpeg" width="200" alt="Event Details">
+  <img src="public/mobile screenshorts/WhatsApp Image 2026-04-15 at 2.55.13 PM (1).jpeg" width="200" alt="Booking Form">
+</div>
+
+<div align="center">
+  <img src="public/mobile screenshorts/WhatsApp Image 2026-04-15 at 2.55.13 PM (2).jpeg" width="200" alt="Admin Dashboard">
+  <img src="public/mobile screenshorts/WhatsApp Image 2026-04-15 at 2.55.14 PM.jpeg" width="200" alt="Profile">
+</div>
+
+### 🌟 Customer Features
+- **Beautiful Home Screen**: Flash offers, trending events, category browsing, and launching cities
+- **Flash Offers Page**: Dedicated page with all events displayed as limited-time offers with countdown timers
+- **Event Discovery**: Browse events by category with stunning card layouts
+- **Detailed Event Pages**: Full event information with image galleries and pricing
+- **Booking System**: Complete booking flow with date selection, guest count, venue, and budget
+- **My Requests**: Track all your event booking requests and their status
+- **Plan My Event**: AI-powered event planning assistant
+- **User Profile**: Manage your account and preferences
+
+### 👨💼 Admin Features
+- **Admin Dashboard**: Separate admin panel accessible with admin credentials
+- **Request Management**: View and manage all event booking requests
+- **Status Updates**: Update request status through the booking lifecycle
+- **Statistics**: Real-time stats for total, pending, and completed requests
+- **Filter System**: Filter requests by status (All, Pending, Active, Done, Cancelled)
+- **Customer Details**: View customer information for each request
+
+### 🆕 Version 2.0.0 Updates
+- ⚡ **Flash Offers Page**: Beautiful dedicated page with all events as flash deals
+- 🚀 **Launching in Your City Soon**: New section showing upcoming city launches
+- 🔧 **Fixed Booking Flow**: Resolved API integration issues
+- 🎨 **Enhanced Splash Screen**: Better UX with "Get Started" button
+- 🔐 **Improved Authentication**: Better state management and navigation
+- 👨💼 **Admin Panel**: Complete admin dashboard for managing bookings
+- 🐛 **Bug Fixes**: Multiple fixes for navigation, API calls, and error handling
+
+---
+
+## 🛡️ Security Implementations
 
 - **No Token Leaks:** Fully protected routes. Registration payloads do NOT return JWTs for pending providers.
 - **Encrypted Passwords:** Passwords securely hashed via `bcryptjs` before insertion into MongoDB.
 - **Session State:** Stateless/Stateful sessions validated via signed JSON Web Tokens (`JWT`) expiring dynamically.
 - **Protected Routes:** Entire Admin Portal guarded via custom `AdminRoute` wrappers and strict backend middleware verifying HTTP headers and database roles.
+- **Mobile Security:** Secure token storage using AsyncStorage with automatic token refresh and validation.
+- **Self-Ping Mechanism:** Backend pings itself every 15 seconds to prevent Render sleep mode.
 
 ---
 
-✨ _Engineered for the future. Scaling events through code and artificial intelligence._
+## 📦 Project Structure
+
+```
+calevent/
+├── calevent-backend/          # Node.js + Express backend
+│   ├── controllers/
+│   ├── models/
+│   ├── routes/
+│   ├── middleware/
+│   └── server.js
+├── src/                      # React web frontend
+│   ├── components/
+│   ├── customer/
+│   ├── provider/
+│   ├── admin/
+│   └── App.jsx
+└── appversioncalevent/       # React Native mobile app
+    ├── src/
+    │   ├── screens/
+    │   ├── navigation/
+    │   ├── store/
+    │   └── services/
+    ├── app.json
+    ├── eas.json
+    └── package.json
+```
+
+---
+
+✨ _Engineered for the future. Scaling events through code and artificial intelligence. Now available on Web & Mobile!_

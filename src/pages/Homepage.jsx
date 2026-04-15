@@ -4,36 +4,15 @@ import { motion } from 'framer-motion'
 import { Search, Calendar, Star, Phone, Mail, MapPin as LocationIcon } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import EventCard from '@/components/EventCard'
 import { providersAPI } from '@/services/api'
 import EnhancedTeddyBot from '../components/EnhancedTeddyBot'
-
-// Available event images from public folder
-const eventImages = [
-  'ambience.jpg',
-  'birthday background.jpg', 
-  'birthday.jpg',
-  'concert event.jpg',
-  'conference.jpg',
-  'corporate.jpg',
-  'corporateevent.jpg',
-  'dj.jpg',
-  'djevent.jpg',
-  'gameing.jpg',
-  'Indian Wedding Mandap Decor.jpg',
-  'lighting.jpg',
-  'wedd33.jpg',
-  'wedding.jpg',
-  'wedding22.jpg',
-  'WhatsApp Image 2025-01-03 at 13.04.37_93b22328.jpg',
-  'WhatsApp Image 2025-01-03 at 13.04.41_94798184.jpg',
-  'WhatsApp Image 2025-01-03 at 13.04.44_b67a33fc.jpg',
-  'WhatsApp Image 2025-01-03 at 13.04.45_43b52d23.jpg',
-  'WhatsApp Image 2025-01-03 at 13.04.48_b38c82a5.jpg',
-  'WhatsApp Image 2025-01-03 at 13.04.51_c51d1db7.jpg'
-]
-
-const getRandomImage = () => eventImages[Math.floor(Math.random() * eventImages.length)]
+import { 
+  PremiumEventsGrid, 
+  TrendingEventsCarousel, 
+  BudgetEventsGrid, 
+  FeatureCard, 
+  TestimonialsCarousel 
+} from '@/components/HomepageSections'
 
 const Homepage = () => {
   const [searchQuery, setSearchQuery] = useState('')
@@ -51,7 +30,6 @@ const Homepage = () => {
   // Load anime.js dynamically
   useEffect(() => {
     import('animejs').then((module) => {
-      // animejs uses CommonJS export, Vite wraps it in .default
       const animeFunc = module.default
       if (typeof animeFunc === 'function') {
         setAnime(() => animeFunc)
@@ -75,12 +53,12 @@ const Homepage = () => {
   ]
 
   const categories = [
-    { name: 'Weddings', icon: '💒' },
+    { name: 'Wedding', icon: '💒' },
     { name: 'Corporate', icon: '🏢' },
     { name: 'Birthday', icon: '🎂' },
     { name: 'Anniversary', icon: '💕' },
-    { name: 'Conferences', icon: '🎤' },
-    { name: 'Parties', icon: '🎉' }
+    { name: 'Party', icon: '🎉' },
+    { name: 'Conference', icon: '🎤' }
   ]
 
   const popularSearches = [
@@ -88,14 +66,12 @@ const Homepage = () => {
     'Birthday Party Decoration',
     'Corporate Event Planning',
     'Anniversary Celebration',
-    'Conference Venue',
-    'Party Catering',
     'Wedding Venue',
     'DJ Services',
-    'Event Management'
+    'Event Catering'
   ]
 
-  // Fetch top providers from API
+  // Fetch top providers
   useEffect(() => {
     const fetchTopProviders = async () => {
       try {
@@ -109,7 +85,6 @@ const Homepage = () => {
         setLoading(false)
       }
     }
-    
     fetchTopProviders()
   }, [])
 
@@ -121,7 +96,6 @@ const Homepage = () => {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            // Animate category cards with staggered effect
             anime({
               targets: '.category-card',
               translateY: [50, 0],
@@ -133,7 +107,6 @@ const Homepage = () => {
               easing: 'easeOutElastic(1, .8)'
             })
 
-            // Animate section title
             anime({
               targets: '.categories-title',
               translateY: [30, 0],
@@ -142,7 +115,6 @@ const Homepage = () => {
               easing: 'easeOutQuad'
             })
 
-            // Animate section subtitle
             anime({
               targets: '.categories-subtitle',
               translateY: [20, 0],
@@ -182,7 +154,6 @@ const Homepage = () => {
         easing: 'easeOutQuad'
       })
       
-      // Animate icon
       anime({
         targets: card.querySelector('.category-icon'),
         scale: 1.2,
@@ -200,7 +171,6 @@ const Homepage = () => {
         easing: 'easeOutQuad'
       })
       
-      // Reset icon
       anime({
         targets: card.querySelector('.category-icon'),
         scale: 1,
@@ -211,8 +181,6 @@ const Homepage = () => {
     }
   }
 
-
-
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % heroImages.length)
@@ -220,22 +188,19 @@ const Homepage = () => {
     return () => clearInterval(timer)
   }, [])
 
-  // Handle search suggestions with real events
+  // Handle search suggestions
   useEffect(() => {
     const fetchSuggestions = async () => {
       if (searchQuery.length > 1) {
         try {
-          // Get popular search matches
           const filteredSuggestions = popularSearches.filter(search => 
             search.toLowerCase().includes(searchQuery.toLowerCase())
           )
           
-          // Get category matches
           const categoryMatches = categories.filter(cat => 
             cat.name.toLowerCase().includes(searchQuery.toLowerCase())
           ).map(cat => cat.name)
           
-          // Fetch real events that match the search
           const { eventsAPI } = await import('@/services/api')
           const response = await eventsAPI.getAllEvents({
             search: searchQuery,
@@ -245,7 +210,6 @@ const Homepage = () => {
           const eventTitles = response.success ? 
             response.data.events.map(event => event.title) : []
           
-          // Combine all suggestions
           const allSuggestions = [
             ...filteredSuggestions,
             ...categoryMatches,
@@ -258,17 +222,11 @@ const Homepage = () => {
           setShowSuggestions(true)
         } catch (error) {
           console.error('Error fetching suggestions:', error)
-          // Fallback to static suggestions
           const filteredSuggestions = popularSearches.filter(search => 
             search.toLowerCase().includes(searchQuery.toLowerCase())
           )
-          const categoryMatches = categories.filter(cat => 
-            cat.name.toLowerCase().includes(searchQuery.toLowerCase())
-          ).map(cat => cat.name)
-          
-          const allSuggestions = [...new Set([...filteredSuggestions, ...categoryMatches])].slice(0, 5)
-          setSuggestions(allSuggestions)
-          setShowSuggestions(allSuggestions.length > 0)
+          setSuggestions(filteredSuggestions)
+          setShowSuggestions(filteredSuggestions.length > 0)
         }
       } else {
         setSuggestions([])
@@ -287,22 +245,10 @@ const Homepage = () => {
     navigate(`/AllEvent?search=${encodeURIComponent(suggestion)}`)
   }
 
-  const handleSearchFocus = () => {
-    if (searchQuery.length > 0 && suggestions.length > 0) {
-      setShowSuggestions(true)
-    }
-  }
-
-  const handleSearchBlur = () => {
-    // Use onMouseDown instead of onClick for suggestions to naturally prevent premature blurring
-    setShowSuggestions(false)
-  }
-
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-white">
       {/* Hero Section */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
-        {/* Background Images */}
         {heroImages.map((image, index) => (
           <div
             key={index}
@@ -315,20 +261,19 @@ const Homepage = () => {
               alt={`Hero ${index + 1}`}
               className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-black/60" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/70" />
           </div>
         ))}
 
-        {/* Hero Content */}
-        <div className="relative z-10 text-center text-white max-w-4xl mx-auto px-4">
+        <div className="relative z-10 text-center text-white max-w-5xl mx-auto px-4">
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-6xl md:text-8xl font-black mb-6 tracking-tight leading-[1.1]"
+            className="text-5xl md:text-7xl lg:text-8xl font-black mb-6 tracking-tight leading-[1.1]"
           >
             Create Unforgettable
-            <span className="block bg-gradient-to-r from-white via-indigo-200 to-purple-300 bg-clip-text text-transparent">
+            <span className="block bg-gradient-to-r from-purple-400 via-pink-400 to-indigo-400 bg-clip-text text-transparent">
               Moments
             </span>
           </motion.h1>
@@ -337,9 +282,9 @@ const Homepage = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-xl md:text-2xl mb-8 text-gray-200"
+            className="text-xl md:text-2xl mb-10 text-gray-200 max-w-3xl mx-auto"
           >
-            Tell us your dream event — we handle everything from planning to execution
+            India's most trusted AI-powered event booking platform
           </motion.p>
 
           {/* Search Bar */}
@@ -347,70 +292,57 @@ const Homepage = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="max-w-3xl mx-auto mb-10 w-full px-4"
+            className="max-w-3xl mx-auto mb-10"
           >
-            <div className="flex flex-col md:flex-row gap-3 bg-white/20 backdrop-blur-2xl p-3 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/20 relative z-20">
-              <div className="flex-1 relative flex items-center">
-                <Search className="absolute left-5 text-gray-400 w-6 h-6 z-10 pointer-events-none" />
+            <div className="flex flex-col md:flex-row gap-3 bg-white/10 backdrop-blur-2xl p-3 rounded-2xl shadow-2xl border border-white/20">
+              <div className="flex-1 relative">
+                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 w-6 h-6" />
                 <Input
                   placeholder="Search events, venues, or services..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch(e)}
-                  onFocus={handleSearchFocus}
-                  onBlur={handleSearchBlur}
-                  className="pl-14 bg-white/95 backdrop-blur-xl border border-white/50 h-16 text-lg rounded-xl text-gray-900 placeholder-gray-500 shadow-inner w-full focus:ring-4 focus:ring-white/20 transition-all duration-300"
+                  onFocus={() => searchQuery.length > 0 && suggestions.length > 0 && setShowSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                  className="pl-14 bg-white h-16 text-lg rounded-xl text-gray-900 placeholder-gray-500 border-0 focus:ring-2 focus:ring-purple-500"
                 />
                 
-                {/* Search Suggestions Dropdown */}
                 {showSuggestions && (
-                  <div className="absolute top-[calc(100%+0.5rem)] left-0 right-0 bg-white/95 backdrop-blur-2xl border border-gray-100 rounded-2xl shadow-2xl z-50 max-h-80 overflow-y-auto transform origin-top transition-all duration-200">
+                  <div className="absolute top-full mt-2 left-0 right-0 bg-white rounded-2xl shadow-2xl z-50 max-h-80 overflow-y-auto">
                     <div className="py-2">
-                      {suggestions.length > 0 ? (
-                        suggestions.map((suggestion, index) => {
-                          const isEvent = eventSuggestions.includes(suggestion)
-                          return (
-                            <button
-                              key={index}
-                              onMouseDown={(e) => {
-                                e.preventDefault() // Prevents input from losing focus immediately
-                                handleSuggestionClick(suggestion)
-                              }}
-                              className="w-full text-left px-5 py-4 hover:bg-gray-50/80 transition-colors flex items-center justify-between group border-b border-gray-50 last:border-b-0"
-                            >
-                              <div className="flex items-center space-x-4">
-                                <div className={`p-2 rounded-xl transition-colors ${isEvent ? 'bg-indigo-50 group-hover:bg-indigo-100 text-indigo-600' : 'bg-gray-50 group-hover:bg-gray-200 text-gray-500'}`}>
-                                  {isEvent ? <Calendar className="w-5 h-5" /> : <Search className="w-5 h-5" />}
-                                </div>
-                                <span className={`text-base font-medium transition-colors ${isEvent ? 'text-gray-900' : 'text-gray-700'}`}>
-                                  {suggestion}
-                                </span>
+                      {suggestions.map((suggestion, index) => {
+                        const isEvent = eventSuggestions.includes(suggestion)
+                        return (
+                          <button
+                            key={index}
+                            onClick={() => handleSuggestionClick(suggestion)}
+                            className="w-full text-left px-5 py-4 hover:bg-gray-50 transition-colors flex items-center justify-between group"
+                          >
+                            <div className="flex items-center space-x-4">
+                              <div className={`p-2 rounded-xl ${isEvent ? 'bg-purple-50 text-purple-600' : 'bg-gray-50 text-gray-500'}`}>
+                                {isEvent ? <Calendar className="w-5 h-5" /> : <Search className="w-5 h-5" />}
                               </div>
-                              {isEvent && (
-                                <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100/50">
-                                  Event
-                                </span>
-                              )}
-                            </button>
-                          )
-                        })
-                      ) : searchQuery.length > 1 ? (
-                        <div className="px-5 py-8 text-center text-gray-500">
-                          <Search className="w-8 h-8 text-gray-300 mx-auto mb-3" />
-                          <p className="text-[15px]">No results found for <span className="font-medium text-gray-900">"{searchQuery}"</span></p>
-                        </div>
-                      ) : null}
+                              <span className="text-base font-medium text-gray-900">{suggestion}</span>
+                            </div>
+                            {isEvent && (
+                              <span className="text-xs font-semibold text-purple-600 bg-purple-50 px-3 py-1 rounded-full">
+                                Event
+                              </span>
+                            )}
+                          </button>
+                        )
+                      })}
                     </div>
                   </div>
                 )}
               </div>
-              <Button size="lg" className="h-16 px-10 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all font-semibold" onClick={handleSearch}>
+              <Button size="lg" className="h-16 px-10 text-lg rounded-xl font-semibold bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700" onClick={handleSearch}>
                 Search
               </Button>
             </div>
           </motion.div>
 
-          {/* Plan My Event CTA */}
+          {/* CTAs */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -418,47 +350,39 @@ const Homepage = () => {
             className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
             <Link to="/plan-my-event">
-              <button className="flex items-center space-x-3 bg-[#7c3aed] hover:bg-purple-700 text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-2xl hover:shadow-purple-500/30 transition-all duration-300 group">
+              <button className="flex items-center space-x-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-2xl transition-all group">
                 <span className="text-2xl group-hover:scale-110 transition-transform">🎯</span>
                 <span>Plan My Event</span>
               </button>
             </Link>
-            <Link to="/my-requests">
-              <button className="flex items-center space-x-2 bg-white/15 hover:bg-white/25 backdrop-blur-sm text-white px-6 py-4 rounded-2xl font-semibold text-base border border-white/30 transition-all duration-300">
-                <span>📋</span>
-                <span>Track My Requests</span>
+            <Link to="/AllEvent">
+              <button className="flex items-center space-x-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white px-8 py-4 rounded-2xl font-semibold text-lg border border-white/30 transition-all">
+                <span>Browse Events</span>
+                <span>→</span>
               </button>
             </Link>
           </motion.div>
-
-
         </div>
 
         {/* Slide Indicators */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-2">
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex space-x-2 z-20">
           {heroImages.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentSlide(index)}
-              className={`w-3 h-3 rounded-full transition-colors ${
-                index === currentSlide ? 'bg-white' : 'bg-white/50'
+              className={`w-3 h-3 rounded-full transition-all ${
+                index === currentSlide ? 'bg-white w-8' : 'bg-white/50'
               }`}
             />
           ))}
         </div>
       </section>
 
-      {/* Categories Section with Anime.js */}
-      <section ref={categoriesRef} className="py-20 bg-gradient-to-br from-slate-50 to-blue-50 relative overflow-hidden">
-        {/* Background decoration */}
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-10 left-10 w-32 h-32 bg-purple-500 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-10 right-10 w-40 h-40 bg-blue-500 rounded-full blur-3xl"></div>
-        </div>
-        
-        <div className="max-w-7xl mx-auto px-4 relative">
+      {/* Categories Section */}
+      <section ref={categoriesRef} className="py-20 bg-gradient-to-br from-slate-50 to-blue-50">
+        <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="categories-title text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight mb-4 opacity-0">
+            <h2 className="categories-title text-4xl md:text-5xl font-extrabold text-slate-900 mb-4 opacity-0">
               Popular Event Categories
             </h2>
             <p className="categories-subtitle text-xl text-slate-600 max-w-2xl mx-auto opacity-0">
@@ -466,25 +390,19 @@ const Homepage = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {categories.map((category, index) => (
               <div
                 key={category.name}
                 ref={(el) => (categoryCardsRef.current[index] = el)}
-                className="category-card opacity-0 cursor-pointer"
+                className="category-card opacity-0"
                 onMouseEnter={() => handleCategoryHover(index, true)}
                 onMouseLeave={() => handleCategoryHover(index, false)}
               >
                 <Link to={`/category/${category.name.toLowerCase()}`}>
-                  <div className="bg-gradient-to-br from-white via-slate-50 to-blue-50 p-7 rounded-2xl text-slate-800 text-center shadow-lg border border-slate-200 relative overflow-hidden group">
-                    {/* Shimmer effect */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-                    
-                    <div className="category-icon text-5xl mb-4 relative z-10">{category.icon}</div>
-                    <h3 className="font-semibold text-lg mb-1 relative z-10">{category.name}</h3>
-                    
-                    {/* Hover glow effect */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="bg-white p-8 rounded-2xl text-center shadow-lg border border-gray-100 hover:border-purple-200 transition-all cursor-pointer group">
+                    <div className="category-icon text-6xl mb-4">{category.icon}</div>
+                    <h3 className="font-bold text-xl text-gray-900 group-hover:text-purple-600 transition-colors">{category.name}</h3>
                   </div>
                 </Link>
               </div>
@@ -493,21 +411,86 @@ const Homepage = () => {
         </div>
       </section>
 
-      {/* Top Providers Section */}
-      <section className="py-20">
+      {/* Premium Events */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center justify-between mb-12">
+            <div>
+              <h2 className="text-4xl font-bold text-slate-900 mb-2">
+                ✨ Premium Events
+              </h2>
+              <p className="text-lg text-slate-600">
+                Handpicked luxury experiences for your special moments
+              </p>
+            </div>
+            <Link to="/AllEvent?tag=premium">
+              <Button variant="outline" className="hidden md:flex">
+                View All →
+              </Button>
+            </Link>
+          </div>
+          <PremiumEventsGrid />
+        </div>
+      </section>
+
+      {/* Trending Now */}
+      <section className="py-20 bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center justify-between mb-12">
+            <div>
+              <h2 className="text-4xl font-bold text-slate-900 mb-2">
+                🔥 Trending Now
+              </h2>
+              <p className="text-lg text-slate-600">
+                Most booked events this week
+              </p>
+            </div>
+            <Link to="/AllEvent?sort=popular">
+              <Button variant="outline" className="hidden md:flex">
+                Explore More →
+              </Button>
+            </Link>
+          </div>
+          <TrendingEventsCarousel />
+        </div>
+      </section>
+
+      {/* Budget Friendly */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center justify-between mb-12">
+            <div>
+              <h2 className="text-4xl font-bold text-slate-900 mb-2">
+                💰 Budget Friendly
+              </h2>
+              <p className="text-lg text-slate-600">
+                Amazing events that won't break the bank
+              </p>
+            </div>
+            <Link to="/AllEvent?tag=budget">
+              <Button variant="outline" className="hidden md:flex">
+                See All Deals →
+              </Button>
+            </Link>
+          </div>
+          <BudgetEventsGrid />
+        </div>
+      </section>
+
+      {/* Top Providers */}
+      <section className="py-20 bg-gradient-to-br from-slate-50 to-blue-50">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-slate-900 mb-4">
-              Our Verified Provider Network
+              🏆 Top Rated Providers
             </h2>
             <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-              CALEVENT works with top-rated professionals — we assign the best match for your event
+              Verified professionals with proven track records
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {loading ? (
-              // Loading skeleton
               [...Array(4)].map((_, index) => (
                 <div key={index} className="bg-white rounded-2xl shadow-lg overflow-hidden animate-pulse">
                   <div className="aspect-square bg-gray-200" />
@@ -549,7 +532,7 @@ const Homepage = () => {
                       <div className="flex items-center space-x-4 text-sm text-gray-600">
                         <div className="flex items-center space-x-1">
                           <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                          <span>{provider.rating || '0.0'}</span>
+                          <span>{provider.rating || '4.5'}</span>
                         </div>
                         <div>{provider.totalBookings || 0} bookings</div>
                       </div>
@@ -557,67 +540,93 @@ const Homepage = () => {
                   </Link>
                 </motion.div>
               ))
-            ) : (
-              <div className="col-span-full text-center py-12">
-                <p className="text-gray-500">No providers available at the moment.</p>
-              </div>
-            )}
+            ) : null}
           </div>
 
           <div className="text-center mt-12">
-            <Link to="/plan-my-event">
-              <Button size="lg" className="bg-[#7c3aed] hover:bg-purple-700 text-white font-bold px-10">
-                🎯 Plan My Event
+            <Link to="/providers">
+              <Button size="lg" variant="outline">
+                View All Providers →
               </Button>
             </Link>
           </div>
         </div>
       </section>
 
-
-
-      {/* Contact Section */}
-      <section className="py-20">
+      {/* Why Choose CALEVENT */}
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="bg-gradient-to-br from-gray-900 via-primary/95 to-purple-900 rounded-[2.5rem] shadow-2xl p-12 text-white relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-[40rem] h-[40rem] bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
-              <div>
-                <h2 className="text-4xl font-bold mb-6">
-                  Need Help Planning Your Event?
-                </h2>
-                <p className="text-xl mb-8 text-gray-200">
-                  Get in touch with our team and let's make your vision come to life
-                </p>
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-3">
-                    <Phone className="w-5 h-5" />
-                    <span>+91 9876543210</span>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <Mail className="w-5 h-5" />
-                    <span>hello@calevent.com</span>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <LocationIcon className="w-5 h-5" />
-                    <span>Mumbai, India</span>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-white/10 backdrop-blur-md p-8 rounded-2xl">
-                <h3 className="text-2xl font-semibold mb-6">Send us a message</h3>
-                <form className="space-y-4">
-                  <Input placeholder="Your Name" className="bg-white/20 border-white/30 text-white placeholder:text-white/70" />
-                  <Input placeholder="Your Email" type="email" className="bg-white/20 border-white/30 text-white placeholder:text-white/70" />
-                  <textarea
-                    placeholder="Your Message"
-                    rows={4}
-                    className="w-full p-3 rounded-lg bg-white/20 border border-white/30 text-white placeholder:text-white/70 resize-none focus:outline-none focus:ring-2 focus:ring-white/50"
-                  />
-                  <Button variant="secondary" className="w-full">
-                    Send Message
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-slate-900 mb-4">
+              Why Choose CALEVENT?
+            </h2>
+            <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+              India's most trusted AI-powered event booking platform
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <FeatureCard 
+              icon="🤖"
+              title="AI-Powered Matching"
+              description="Our intelligent system finds the perfect providers for your event requirements"
+            />
+            <FeatureCard 
+              icon="✅"
+              title="Verified Providers"
+              description="All providers are thoroughly vetted and verified by our admin team"
+            />
+            <FeatureCard 
+              icon="💳"
+              title="Secure Payments"
+              description="Safe and encrypted payment processing with Razorpay integration"
+            />
+            <FeatureCard 
+              icon="🎯"
+              title="End-to-End Support"
+              description="From planning to execution, we're with you every step of the way"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="py-20 bg-gradient-to-br from-purple-50 to-pink-50">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-slate-900 mb-4">
+              💬 What Our Customers Say
+            </h2>
+            <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+              Real stories from real celebrations
+            </p>
+          </div>
+          <TestimonialsCarousel />
+        </div>
+      </section>
+
+      {/* CTA Banner */}
+      <section className="py-20 bg-white">
+        <div className="max-w-5xl mx-auto px-4">
+          <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 rounded-3xl p-12 md:p-16 text-center text-white relative overflow-hidden">
+            <div className="absolute inset-0 bg-black/10"></div>
+            <div className="relative z-10">
+              <h2 className="text-4xl md:text-5xl font-bold mb-6">
+                Ready to Plan Your Dream Event?
+              </h2>
+              <p className="text-xl mb-8 text-white/90">
+                Let our AI assistant help you find the perfect match in minutes
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <Link to="/plan-my-event">
+                  <Button size="lg" className="bg-white text-purple-600 hover:bg-gray-100 font-bold px-10 text-lg">
+                    🎯 Start Planning Now
                   </Button>
-                </form>
+                </Link>
+                <Link to="/AllEvent">
+                  <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 font-semibold px-10 text-lg">
+                    Browse Events
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>
@@ -629,32 +638,18 @@ const Homepage = () => {
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <div className="text-2xl font-bold text-white mb-4">
-                CALEVENT
-              </div>
+              <div className="text-2xl font-bold mb-4">CALEVENT</div>
               <p className="text-gray-400 mb-4">
                 Your trusted partner for creating unforgettable events and celebrations.
               </p>
-              <div className="flex space-x-4">
-                <div className="w-8 h-8 bg-gradient-to-r from-black to-[#333f63] rounded-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity">
-                  <span className="text-sm">f</span>
-                </div>
-                <div className="w-8 h-8 bg-gradient-to-r from-black to-[#333f63] rounded-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity">
-                  <span className="text-sm">t</span>
-                </div>
-                <div className="w-8 h-8 bg-gradient-to-r from-black to-[#333f63] rounded-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity">
-                  <span className="text-sm">i</span>
-                </div>
-              </div>
             </div>
             
             <div>
               <h3 className="font-semibold text-lg mb-4">Quick Links</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><Link to="/about" className="hover:text-white transition-colors">About Us</Link></li>
                 <li><Link to="/AllEvent" className="hover:text-white transition-colors">Browse Events</Link></li>
                 <li><Link to="/providers" className="hover:text-white transition-colors">Find Providers</Link></li>
-                <li><Link to="/combo" className="hover:text-white transition-colors">Combo Events</Link></li>
+                <li><Link to="/plan-my-event" className="hover:text-white transition-colors">Plan Event</Link></li>
               </ul>
             </div>
             
@@ -664,18 +659,20 @@ const Homepage = () => {
                 <li><Link to="/help" className="hover:text-white transition-colors">Help Center</Link></li>
                 <li><Link to="/contact" className="hover:text-white transition-colors">Contact Us</Link></li>
                 <li><Link to="/faq" className="hover:text-white transition-colors">FAQ</Link></li>
-                <li><Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
               </ul>
             </div>
             
             <div>
-              <h3 className="font-semibold text-lg mb-4">Newsletter</h3>
-              <p className="text-gray-400 mb-4">
-                Subscribe to get updates on new events and offers.
-              </p>
-              <div className="flex">
-                <Input placeholder="Your email" className="rounded-r-none" />
-                <Button className="rounded-l-none">Subscribe</Button>
+              <h3 className="font-semibold text-lg mb-4">Contact</h3>
+              <div className="space-y-2 text-gray-400">
+                <div className="flex items-center space-x-2">
+                  <Phone className="w-4 h-4" />
+                  <span>+91 9876543210</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Mail className="w-4 h-4" />
+                  <span>hello@calevent.com</span>
+                </div>
               </div>
             </div>
           </div>
@@ -686,7 +683,6 @@ const Homepage = () => {
         </div>
       </footer>
 
-      {/* Enhanced Teddy Chatbot */}
       <EnhancedTeddyBot />
     </div>
   )

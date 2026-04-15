@@ -1,9 +1,8 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Replace with your machine's local IP (run `ipconfig` on Windows to find it)
-// e.g. http://192.168.1.5:5000/api
-const BASE_URL = 'http://192.168.x.x:5000/api';
+// Backend API URL
+const BASE_URL = 'https://calevent.onrender.com/api';
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -27,7 +26,7 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    // Handle global auth errors (logout if exactly 401, etc)
+    // Handle global auth errors
     if (error.response && error.response.status === 401) {
       await AsyncStorage.removeItem('@auth_token');
       await AsyncStorage.removeItem('@user_data');

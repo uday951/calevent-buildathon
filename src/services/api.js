@@ -230,6 +230,7 @@ export const eventRequestsAPI = {
 export const getImageUrl = (path) => {
   if (!path) return null;
   if (path.startsWith('http')) return path;
+  if (path.startsWith('/')) return path;
   return `${import.meta.env.VITE_BACKEND_URL}/${path}`;
 };
 

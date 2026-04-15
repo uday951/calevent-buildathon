@@ -10,7 +10,9 @@ export const EventCardCompact = ({ event, onPress }) => (
       <Text style={styles.title} numberOfLines={1}>{event.title || ''}</Text>
       <Text style={styles.provider} numberOfLines={1}>{event.providerId?.businessName || 'Verified Provider'}</Text>
       <View style={styles.footer}>
-        <Text style={styles.price}>₹{(event.price || 0).toLocaleString('en-IN')}</Text>
+        <Text style={styles.price}>
+          {event.price <= 1 ? '💬 Discuss' : `₹${(event.price || 0).toLocaleString('en-IN')}`}
+        </Text>
         <View style={styles.ratingRow}>
           <Text>⭐</Text>
           <Text style={styles.ratingText}>{event.rating || '4.5'}</Text>

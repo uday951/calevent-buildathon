@@ -1,43 +1,42 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 const AdminContext = createContext();
 
 export const AdminProvider = ({ children }) => {
   const [admin, setAdmin] = useState(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
   useEffect(() => {
-    checkAdminAuth();
-  }, []);
-
-  const checkAdminAuth = () => {
     const token = localStorage.getItem('adminToken');
     const adminData = localStorage.getItem('adminUser');
-    
     if (token && adminData) {
-      setAdmin(JSON.parse(adminData));
+      try {
+        setAdmin(JSON.parse(adminData));
+      } catch {
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminUser');
+      }
     }
     setLoading(false);
-  };
+  }, []);
 
   const login = async (email, password) => {
-    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
-
+    const response = await fetch(
+      `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/admin/login`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      }
+    );
     const data = await response.json();
-    
+
     if (data.success) {
       localStorage.setItem('adminToken', data.data.token);
       localStorage.setItem('adminUser', JSON.stringify(data.data.admin));
       setAdmin(data.data.admin);
       return { success: true };
     }
-    
     return { success: false, message: data.message };
   };
 
@@ -45,7 +44,8 @@ export const AdminProvider = ({ children }) => {
     localStorage.removeItem('adminToken');
     localStorage.removeItem('adminUser');
     setAdmin(null);
-    navigate('/admin/login');
+    // Hard redirect so no stale state leaks into customer/provider pages
+    window.location.href = '/admin/login';
   };
 
   return (
@@ -57,8 +57,6 @@ export const AdminProvider = ({ children }) => {
 
 export const useAdmin = () => {
   const context = useContext(AdminContext);
-  if (!context) {
-    throw new Error('useAdmin must be used within AdminProvider');
-  }
+  if (!context) throw new Error('useAdmin must be used within AdminProvider');
   return context;
 };

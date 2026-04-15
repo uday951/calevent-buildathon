@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "appversioncalevent",
-    "slug": "appversioncalevent",
-    "version": "1.0.0",
+    "name": "CALEVENT",
+    "slug": "calevent",
+    "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -10,20 +10,27 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#7c3aed"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.calevent.app"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#7c3aed"
       },
-      "package": "com.udaykiran1.appversioncalevent"
+      "package": "com.calevent.app",
+      "versionCode": 2
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "29e4b1e4-b004-4f85-8b43-f1dd13541c33"
+      }
     }
   }
 }

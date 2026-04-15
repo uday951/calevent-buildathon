@@ -4,13 +4,18 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Menu, X, User, LogOut, Calendar, Heart, Settings, MessageSquare } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/Button'
+import { useAdmin } from '@/contexts/AdminContext'
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
   const { user, logout, isAuthenticated } = useAuth()
+  const { isAuthenticated: isAdminAuthenticated } = useAdmin()
   const location = useLocation()
   const navigate = useNavigate()
+
+  // Hide navbar entirely on admin pages
+  if (location.pathname.startsWith('/admin')) return null
 
   const navigation = [
     { name: 'Home', href: '/' },

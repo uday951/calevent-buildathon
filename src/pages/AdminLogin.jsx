@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, User, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -12,7 +12,12 @@ const AdminLogin = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const { login } = useAdmin();
+  const { login, isAuthenticated } = useAdmin();
+
+  // Already logged in — go straight to dashboard
+  useEffect(() => {
+    if (isAuthenticated) navigate('/admin/dashboard', { replace: true });
+  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -106,11 +111,9 @@ const AdminLogin = () => {
           </Button>
         </form>
 
-        <div className="mt-6 text-center">
-          <p className="text-xs text-gray-500">
-            Authorized personnel only. All activities are logged.
-          </p>
-
+        <div className="mt-6 text-center space-y-1">
+          <p className="text-xs text-gray-500">Authorized personnel only.</p>
+          <p className="text-xs text-gray-400">admin@calevent.com / admin123</p>
         </div>
       </Card>
     </div>

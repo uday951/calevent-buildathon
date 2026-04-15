@@ -5,11 +5,14 @@ import { MapPin, Star, Heart, Calendar, Users, Badge } from 'lucide-react'
 import { formatPrice, getImageUrl } from '@/lib/utils'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
+import toast from 'react-hot-toast'
+import { useAuth } from '@/contexts/AuthContext'
 
 const EventCard = ({ event, className = '' }) => {
   const [isFavorite, setIsFavorite] = useState(false)
   const [imageLoaded, setImageLoaded] = useState(false)
   const navigate = useNavigate()
+  const { isAuthenticated, token } = useAuth()
 
   const handleFavoriteClick = (e) => {
     e.preventDefault()
@@ -19,9 +22,16 @@ const EventCard = ({ event, className = '' }) => {
 
   const goToDetail = () => navigate(`/event/${event._id || event.id}`)
 
-  const goToQuote = (e) => {
+  const handleBookNow = async (e) => {
     e.stopPropagation()
-    navigate(`/plan-my-event?eventType=${encodeURIComponent(event.category || '')}&ref=${event._id || event.id}`)
+    
+    if (!isAuthenticated || !token) {
+      toast.error('Please login to book events')
+      navigate('/login/customer')
+      return
+    }
+
+    navigate(`/book-event/${event._id}`)
   }
 
   return (
@@ -34,11 +44,13 @@ const EventCard = ({ event, className = '' }) => {
           <div className="relative aspect-[4/3] overflow-hidden">
             <img
               src={
-                event.eventImage?.startsWith('http') 
-                  ? event.eventImage 
-                  : event.eventImage 
-                    ? `${import.meta.env.VITE_BACKEND_URL}/${event.eventImage}` 
-                    : '/wedding.jpg'
+                event.eventImage?.startsWith('http')
+                  ? event.eventImage
+                  : event.eventImage?.startsWith('/')
+                    ? event.eventImage
+                    : event.eventImage
+                      ? `${import.meta.env.VITE_BACKEND_URL}/${event.eventImage}`
+                      : '/wedding.jpg'
               }
               alt={event.title}
               className={`w-full h-full object-cover transition-all duration-300 group-hover:scale-105 ${
@@ -85,21 +97,21 @@ const EventCard = ({ event, className = '' }) => {
                     {typeof event.location === 'object' ? event.location.city : event.location}
                   </span>
                 </div>
-                <div className="flex items-center space-x-1">
-                  <Calendar className="w-4 h-4" />
-                  <span>{new Date(event.date).toLocaleDateString()}</span>
-                </div>
+                {event.date && (
+                  <div className="flex items-center space-x-1">
+                    <Calendar className="w-4 h-4" />
+                    <span>{new Date(event.date).toLocaleDateString()}</span>
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <div className="w-6 h-6 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center">
-                    <span className="text-xs text-white font-medium">
-                      {(event.providerId?.name || event.providerName || event.provider?.name || 'Provider').charAt(0)}
-                    </span>
+                    <span className="text-xs text-white font-medium">C</span>
                   </div>
                   <span className="text-sm font-medium text-gray-700">
-                    {event.providerId?.businessName || event.providerId?.name || event.providerName || event.provider?.name || 'Provider'}
+                    {event.providerName || 'CALEVENT'}
                   </span>
                 </div>
                 <div className="flex items-center space-x-1">
@@ -118,11 +130,11 @@ const EventCard = ({ event, className = '' }) => {
 
               <div className="pt-4 border-t border-gray-50">
                 <Button
-                  onClick={goToQuote}
+                  onClick={handleBookNow}
                   className="w-full bg-[#7c3aed] hover:bg-purple-700 transition-all"
                   size="default"
                 >
-                  🎯 Get Quote
+                  🎉 Book Now
                 </Button>
               </div>
             </div>

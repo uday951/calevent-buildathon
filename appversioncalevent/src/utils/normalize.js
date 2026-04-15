@@ -5,6 +5,21 @@
  * @param {any} value - The value coming from backend APIs, AsyncStorage, or props.
  * @returns {boolean} - Strictly returns true or false.
  */
+// All static assets (uploads + public folder images) are served from the backend
+// Backend URL for static assets
+const BACKEND_URL = 'https://calevent.onrender.com';
+
+/**
+ * Resolves an event image path to a full URI.
+ * - Absolute http URLs are returned as-is.
+ * - Relative paths (/weddings/m.jpg, /uploads/...) are served by the backend.
+ */
+export const getImageUri = (imagePath, fallback = 'https://picsum.photos/400/300?random=1') => {
+  if (!imagePath) return fallback;
+  if (imagePath.startsWith('http')) return imagePath;
+  return `${BACKEND_URL}/${imagePath.replace(/^\//, '')}`;
+};
+
 export const normalizeBoolean = (value) => {
   if (value === true || value === false) {
     return value;

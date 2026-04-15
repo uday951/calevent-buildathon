@@ -13,11 +13,15 @@ import { Card, CardContent } from '@/components/ui/Card'
 import EventCard from '@/components/EventCard'
 import toast from 'react-hot-toast'
 import { eventsAPI } from '@/services/api'
+import { useAuth } from '@/contexts/AuthContext'
 
 const EventDetails = () => {
   const { eventId } = useParams()
   const navigate = useNavigate()
   const [isFavorite, setIsFavorite] = useState(false)
+  const [selectedImage, setSelectedImage] = useState(0)
+  const [showAllImages, setShowAllImages] = useState(false)
+  const { isAuthenticated, token } = useAuth()
 
   // Fetch real event data
   const { data: eventData, isLoading, error } = useQuery({
@@ -133,11 +137,13 @@ const EventDetails = () => {
               <div className="aspect-video rounded-lg overflow-hidden relative group">
                 <img
                   src={
-                    event?.eventImage?.startsWith('http') 
-                      ? event.eventImage 
-                      : event?.eventImage 
-                        ? `${import.meta.env.VITE_BACKEND_URL}/${event.eventImage}` 
-                        : '/src/public/wedding.jpg'
+                    event?.eventImage?.startsWith('http')
+                      ? event.eventImage
+                      : event?.eventImage?.startsWith('/')
+                        ? event.eventImage
+                        : event?.eventImage
+                          ? `${import.meta.env.VITE_BACKEND_URL}/${event.eventImage}`
+                          : '/wedding.jpg'
                   }
                   alt={event?.title}
                   className="w-full h-full object-cover"
@@ -164,9 +170,11 @@ const EventDetails = () => {
                 >
                   <img
                     src={
-                      event.eventImage?.startsWith('http') 
-                        ? event.eventImage 
-                        : `${import.meta.env.VITE_BACKEND_URL}/${event.eventImage}`
+                      event.eventImage?.startsWith('http')
+                        ? event.eventImage
+                        : event.eventImage?.startsWith('/')
+                          ? event.eventImage
+                          : `${import.meta.env.VITE_BACKEND_URL}/${event.eventImage}`
                     }
                     alt={event.title}
                     className="w-full h-full object-cover hover:scale-105 transition-transform"
@@ -343,17 +351,31 @@ const EventDetails = () => {
               <CardContent className="p-6">
                 {/* Price display */}
                 <div className="mb-5">
-                  <div className="flex items-baseline space-x-2 mb-1">
-                    <span className="text-3xl font-bold text-gray-900">
-                      {formatPrice(event.price)}
-                    </span>
-                    {event.originalPrice && (
-                      <span className="text-lg text-gray-400 line-through">
-                        {formatPrice(event.originalPrice)}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-sm text-gray-500">Starting price · Final quote after review</p>
+                  {event.price <= 1 ? (
+                    <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 text-center mb-4">
+                      <div className="text-3xl mb-2">💬</div>
+                      <h4 className="text-xl font-bold text-blue-900 mb-1">
+                        Price will be discussed
+                      </h4>
+                      <p className="text-sm text-gray-600">
+                        Get a customized quote based on your requirements
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-baseline space-x-2 mb-1">
+                        <span className="text-3xl font-bold text-gray-900">
+                          {formatPrice(event.price)}
+                        </span>
+                        {event.originalPrice && (
+                          <span className="text-lg text-gray-400 line-through">
+                            {formatPrice(event.originalPrice)}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-500">Starting price · Final quote after review</p>
+                    </>
+                  )}
                 </div>
 
                 {/* Event quick info */}
@@ -392,11 +414,19 @@ const EventDetails = () => {
                 </div>
 
                 {/* Primary CTA */}
-                <Link to={`/plan-my-event?eventType=${encodeURIComponent(event.category || '')}&ref=${event._id}`}>
-                  <Button className="w-full bg-[#7c3aed] hover:bg-purple-700 text-white font-bold py-3 text-base mb-3">
-                    🎯 Request This Event
-                  </Button>
-                </Link>
+                <Button 
+                  onClick={() => {
+                    if (!isAuthenticated || !token) {
+                      toast.error('Please login to book events')
+                      navigate('/login/customer')
+                      return
+                    }
+                    navigate(`/book-event/${event._id}`)
+                  }}
+                  className="w-full bg-[#7c3aed] hover:bg-purple-700 text-white font-bold py-3 text-base mb-3"
+                >
+                  🎉 Book This Event
+                </Button>
                 <Link to="/plan-my-event">
                   <Button variant="outline" className="w-full font-semibold">
                     Plan a Custom Event

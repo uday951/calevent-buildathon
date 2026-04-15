@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { Badge } from './ui/Badge';
 
-export const EventCard = ({ event, onPress }) => (
+export const EventCard = ({ event, onPress, navigation }) => (
   <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.9}>
     <View style={styles.imageWrap}>
       <Image source={{ uri: event.eventImage }} style={styles.image} resizeMode="cover" />
@@ -14,7 +14,9 @@ export const EventCard = ({ event, onPress }) => (
       <Text style={styles.title} numberOfLines={1}>{event.title || ''}</Text>
       <Text style={styles.provider} numberOfLines={1}>{event.providerId?.businessName || 'Verified Provider'}</Text>
       <View style={styles.footer}>
-        <Text style={styles.price}>₹{(event.price || 0).toLocaleString('en-IN')}</Text>
+        <Text style={styles.price}>
+          {event.price <= 1 ? '💬 Will be discussed' : `₹${(event.price || 0).toLocaleString('en-IN')}`}
+        </Text>
         <View style={styles.ratingRow}>
           <Text>⭐</Text>
           <Text style={styles.ratingText}>{event.rating || '4.5'}</Text>

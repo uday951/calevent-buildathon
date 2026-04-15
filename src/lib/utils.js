@@ -6,6 +6,10 @@ export function cn(...inputs) {
 }
 
 export const formatPrice = (price) => {
+  // If price is 1 or less, show "Price will be discussed"
+  if (price <= 1) {
+    return 'Price will be discussed'
+  }
   return new Intl.NumberFormat('en-IN', {
     style: 'currency',
     currency: 'INR',
